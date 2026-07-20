@@ -8,3 +8,4 @@ title = "Sadgi Protocol Documentation"
 git-repository-url = "https://github.com/SadgiProtocol/sadgi-protocol"
 edit-url-template = "https://github.com/SadgiProtocol/sadgi-protocol/edit/main/docs/{path}"
 mathjax-support = true
+additional-css = []
