@@ -1,5 +1,5 @@
 use crate::backend::{BackendType, ProofBackend, ProofRequest, ProverReceipt, VerificationResult};
-use sp1_sdk::{ProverClient, SP1Stdin, SP1ProofWithPublicValues};
+use sp1_sdk::{ProverClient, SP1ProofWithPublicValues, SP1Stdin};
 use std::fs;
 use std::process::Command;
 
@@ -27,7 +27,7 @@ impl SP1ProverBackend {
     fn get_elf(&self, program_id: [u8; 32], version: u32) -> Result<Vec<u8>, String> {
         let hex_id = hex::encode(program_id);
         let path = format!("./elfs/{}/v{}.elf", hex_id, version);
-        
+
         // Mock returning an empty ELF for the stub, or read it if it exists.
         fs::read(&path).or_else(|_| {
             println!("Warning: ELF not found at {}. Using mock ELF.", path);
@@ -42,16 +42,16 @@ impl ProofBackend for SP1ProverBackend {
 
     fn prove(&self, request: ProofRequest) -> Result<Self::Proof, String> {
         println!("Executing SP1 Guest Program...");
-        
+
         let mut stdin = SP1Stdin::new();
         stdin.write_slice(&request.inputs);
 
         let elf = self.get_elf(request.program_id, request.program_version)?;
-        
+
         // This fails if elf is empty, but we'll leave it as a stub.
         /*
         let (pk, _) = self.client.setup(&elf);
-        
+
         let proof = if self.is_docker_running() {
             println!("Docker detected. Generating Groth16 Proof...");
             self.client.prove(&pk, stdin).groth16().run().map_err(|e| e.to_string())?
@@ -61,7 +61,7 @@ impl ProofBackend for SP1ProverBackend {
         };
         Ok(proof)
         */
-        
+
         Err("SP1 Prove Stub: Provide real ELF".to_string())
     }
 

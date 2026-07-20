@@ -23,6 +23,9 @@ impl Scheduler {
     }
 
     pub async fn submit_receipt(&self, receipt: ProverReceipt) {
-        println!("Submitting Receipt to Soroban Marketplace: {:?}", receipt.receipt_hash);
+        println!(
+            "Submitting Receipt to Soroban Marketplace: {:?}",
+            receipt.receipt_hash
+        );
     }
 }

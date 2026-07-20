@@ -1,6 +1,6 @@
-use crate::scheduler::Job;
-use crate::runner;
 use crate::backend::{BackendType, ProofBackend, ProofRequest, ProverReceipt};
+use crate::runner;
+use crate::scheduler::Job;
 
 pub async fn execute_job(job: Job) -> ProverReceipt {
     match job.backend {
@@ -11,11 +11,9 @@ pub async fn execute_job(job: Job) -> ProverReceipt {
                 program_version: job.program_version,
                 inputs: vec![],
             };
-            
+
             match backend.prove(req) {
-                Ok(_proof) => {
-                    runner::dummy_success_receipt(job.program_id, BackendType::SP1)
-                }
+                Ok(_proof) => runner::dummy_success_receipt(job.program_id, BackendType::SP1),
                 Err(e) => {
                     println!("Proof generation failed: {}", e);
                     runner::dummy_success_receipt(job.program_id, BackendType::SP1)
