@@ -75,12 +75,14 @@ jobs:
         # Note: '|| true' makes this advisory — remove once SDKs are upgraded.
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Job 4: Docker publish (only on main after checks pass)
+  # Job 4: Docker publish (disabled until soroban-sdk/risc0 compile on stable Rust)
+  # The Dockerfile runs `cargo build` which hits the same ethnum/borsh-derive
+  # breakage as direct CI builds. Re-enable once SDKs are upgraded.
   # ─────────────────────────────────────────────────────────────────────────────
   docker-publish:
     name: Build & Publish Prover Image
     needs: [fmt, resolve]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: false # Temporarily disabled — see comment above
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,10 +94,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase image name
+        run: echo "IMAGE=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/sadgi-protocol/sadgi-prover:latest" >> $GITHUB_ENV
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}/sadgi-prover:latest
+          tags: ${{ env.IMAGE }}
           target: prover
