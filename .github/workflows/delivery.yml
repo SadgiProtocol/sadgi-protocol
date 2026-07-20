@@ -70,8 +70,10 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
         
-      - name: Install SP1 CLI
-        run: curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
+      - name: Install SP1 CLI & Dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y protobuf-compiler
+          curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
         
       - name: Clippy
         run: cd prover && cargo clippy --workspace --all-targets -- -D warnings
