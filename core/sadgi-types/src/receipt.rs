@@ -1,47 +1,28 @@
-use soroban_sdk::{contracttype, Bytes, BytesN, Env, String, Vec};
+use soroban_sdk::{contracttype, Bytes, BytesN, Env};
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BackendType {
-    RiscZero,
     SP1,
     Succinct,
     Custom,
 }
 
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ReceiptHeader {
-    pub version: u32,
-    pub timestamp: u64,
-    pub receipt_hash: BytesN<32>,
-}
-
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ReceiptMetadata {
-    pub program_id: BytesN<32>,
-    pub execution_id: BytesN<32>,
-    pub backend: BackendType,
-}
-
 /// A generic envelope for any Zero-Knowledge proof generated across different backends.
-/// The marketplace and verifier smart contracts only ever deal with `SadgiReceipt`.
+/// The marketplace and verifier smart contracts only ever deal with `ProofReceipt`.
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SadgiReceipt {
-    pub header: ReceiptHeader,
-    pub metadata: ReceiptMetadata,
-    /// The public outputs committed by the guest program
-    pub journal: Bytes,
-    /// The opaque cryptographic proof bytes
-    pub seal: Bytes,
+pub struct ProofReceipt {
+    pub backend: BackendType,
+    pub program_id: BytesN<32>,
+    pub program_version: u32,
+    pub proof: Bytes,
+    pub public_values: Bytes,
 }
 
-impl SadgiReceipt {
+impl ProofReceipt {
     pub fn verify(&self, env: &Env) -> bool {
-        // In a real implementation, this method would route the seal to the correct
-        // verifier contract based on the `BackendType`. For now, this is an abstraction.
+        // Verification logic is now delegated to the Verifier contract via cross-contract calls.
         true
     }
 }

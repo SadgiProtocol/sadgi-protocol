@@ -28,3 +28,6 @@ Thumbs.db
 # Soroban State
 .soroban/
 soroban-data/
+scratch/
+target/
+**/target/

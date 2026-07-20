@@ -7,7 +7,7 @@ The protocol enforces strict SemVer (`MAJOR.MINOR.PATCH`) across its diverse com
 - **Smart Contracts (Soroban WASM)**: 
   - `MAJOR`: Breaking changes to the `SadgiMarketplaceClient` interface (e.g., modifying `create_job` arguments).
   - `MINOR`: Internal state machine additions or gas optimizations.
-- **Reference Programs (RISC-V)**:
+- **Reference Programs (SP1)**:
   - `MAJOR`: Changes to the `CanonicalJournal` payload structure or `PrivateClaim` schemas.
 - **Developer SDK (`sadgi-sdk`)**:
   - Versioned independently on `crates.io`. `MAJOR` updates align with Contract API breaking changes.
@@ -32,7 +32,7 @@ When a Release is cut, the following artifacts are generated and deployed:
 - `dashboard`: Deployed to Vercel or a decentralized hosting provider.
 
 ## 4. Observability & Security
-- **Security**: The CI pipeline enforces `cargo audit` to catch upstream vulnerabilities in RISC Zero or Soroban SDKs before they reach Mainnet.
+- **Security**: The CI pipeline enforces `cargo audit` to catch upstream vulnerabilities in SP1 or Soroban SDKs before they reach Mainnet.
 - **Observability**: The Prover Node implements structured logging and exposes healthcheck endpoints for container orchestrators (like Kubernetes).
 
 ## 5. Protocol Administration & Governance
@@ -53,4 +53,4 @@ To upgrade the protocol or adjust Marketplace Parameters (e.g. minimum prover XL
 4. **Timelock**: Once the threshold is met, the change enters a mandatory waiting period before it can be `execute()`'d.
 
 ### 5.3 Emergency Controls
-In the event of a catastrophic vulnerability (e.g. a zero-day in RISC Zero's verifier), the Technical Council can bypass the Timelock to trigger a `PauseMarketplace` cross-contract call. This prevents new jobs from being queued while a patch is developed.
+In the event of a catastrophic vulnerability (e.g. a zero-day in SP1's verifier), the Technical Council can bypass the Timelock to trigger a `PauseMarketplace` cross-contract call. This prevents new jobs from being queued while a patch is developed.

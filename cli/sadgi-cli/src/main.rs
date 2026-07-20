@@ -53,7 +53,7 @@ enum JobCommands {
 
 #[derive(Subcommand)]
 enum ProofCommands {
-    /// Submit a serialized SadgiReceipt for verification and settlement
+    /// Submit a serialized ProofReceipt for verification and settlement
     Submit {
         #[arg(long)]
         job: u64,
@@ -126,7 +126,7 @@ async fn main() {
         Commands::Proof { proof_cmd } => {
             match proof_cmd {
                 ProofCommands::Submit { job, receipt } => {
-                    println!("=> Loading SadgiReceipt from file: {}", receipt);
+                    println!("=> Loading ProofReceipt from file: {}", receipt);
                     println!("=> Submitting Proof to Soroban Marketplace for Job #{}...", job);
                     println!("=> Verification Successful!");
                     println!("=> Escrow funds released. Settlement complete.");

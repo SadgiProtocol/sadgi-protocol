@@ -1,12 +1,12 @@
 #![no_std]
 
-use sadgi_types::receipt::SadgiReceipt;
+use sadgi_types::receipt::ProofReceipt;
 use soroban_sdk::{contractclient, Address, Env};
 
 #[contractclient(name = "MarketplaceClient")]
 pub trait MarketplaceTrait {
     fn create_job(env: Env, developer: Address, bounty: i128) -> u64;
-    fn submit_proof(env: Env, prover: Address, job_id: u64, receipt: SadgiReceipt);
+    fn submit_proof(env: Env, prover: Address, job_id: u64, receipt: ProofReceipt);
 }
 
 /// A simplified helper wrapper to make cross-contract calls from inside other Soroban contracts.
@@ -27,7 +27,7 @@ impl<'a> SadgiProtocol<'a> {
     }
 
     /// Helper method for provers to submit a receipt.
-    pub fn submit_receipt(&self, prover: &Address, job_id: u64, receipt: &SadgiReceipt) {
+    pub fn submit_receipt(&self, prover: &Address, job_id: u64, receipt: &ProofReceipt) {
         let client = MarketplaceClient::new(self.env, &self.contract_id);
         client.submit_proof(prover, &job_id, receipt);
     }

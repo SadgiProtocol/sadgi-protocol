@@ -9,25 +9,26 @@ A compliant Sadgi Program MUST:
 1. **Read the `caller_contract_id`** as the first input from the Host.
 2. **Commit the `caller_contract_id`** as the first 32 bytes of the Journal.
 
-## Example (RISC Zero)
+## Example (SP1)
 
 ```rust
-use risc0_zkvm::guest::env;
+#![no_main]
+sp1_zkvm::entrypoint!(main);
 
-fn main() {
+pub fn main() {
     // 1. Read the Soroban Contract ID requesting this computation.
-    let caller_contract_id: [u8; 32] = env::read();
+    let caller_contract_id = sp1_zkvm::io::read::<[u8; 32]>();
     
     // 2. Commit it to the journal immediately to prevent Replay Attacks.
-    env::commit_slice(&caller_contract_id);
+    sp1_zkvm::io::commit(&caller_contract_id);
     
     // 3. Perform arbitrary heavy computation...
-    let user_data: Vec<u8> = env::read();
-    let is_valid = verify_heavy_cryptography(user_data);
+    let user_data = sp1_zkvm::io::read::<Vec<u8>>();
+    let is_valid = user_data.len() > 0; // Example heavy cryptography
     
     // 4. Commit the business logic results.
-    env::commit(&is_valid);
+    sp1_zkvm::io::commit(&is_valid);
 }
 ```
 
-By strictly adhering to this standard, the Soroban `SadgiReceipt` Verifier can securely map the cryptographic proof back to the exact Smart Contract that requested it.
+By strictly adhering to this standard, the Soroban `ProofReceipt` Verifier can securely map the cryptographic proof back to the exact Smart Contract that requested it.

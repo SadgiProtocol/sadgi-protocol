@@ -20,7 +20,7 @@ The Soroban contract acts as a decentralized Scheduler. When a `JobRequest` is r
 - **Reputation**: Has this Prover successfully completed jobs on time in the past?
 
 ### 4. Settlement & Slashing
-When the assigned Prover submits the `SadgiReceipt`, the Marketplace contract immediately routes the receipt to the `SadgiVerifier`. 
+When the assigned Prover submits the `ProofReceipt`, the Marketplace contract immediately routes the receipt to the `SadgiVerifier`. 
 - If `valid`, the XLM bounty is instantly unlocked and transferred to the Prover.
 - If the Prover misses the deadline, they suffer a reputation penalty and a temporary timeout.
 - If the Prover submits a cryptographically forged proof, they are **slashed** (their entire XLM stake is confiscated and burned).

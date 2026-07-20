@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Compute Marketplace**: Initial implementation of the Soroban Escrow and Scheduler.
 - **Reference Programs**: Scaffolded `Identity` (KYC) and `Credit` zkVM guest programs.
 - **Developer SDK**: Added the Rust SDK for generating and submitting proof requests.
-- **Protocol Standards**: Defined the `SadgiReceipt` standard serialization format.
+- **Protocol Standards**: Defined the `ProofReceipt` standard serialization format.
 - **Ecosystem DX**: Established `make dev` localnet sandbox with Next.js Explorer integration.
 
 ### Changed

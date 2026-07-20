@@ -17,32 +17,27 @@ RUN apt-get update && apt-get install -y \
 RUN rustup target add wasm32-unknown-unknown
 RUN cargo install --locked soroban-cli
 
-# Install RISC Zero toolchain (for building programs)
-RUN cargo binstall -y cargo-risczero
-RUN cargo risczero install
+# Install SP1 toolchain
+RUN curl -L https://sp1.succinct.xyz | bash
+ENV PATH="/root/.sp1/bin:${PATH}"
+RUN sp1up
 
 WORKDIR /workspace
 
 # Copy workspace manifests
 COPY Cargo.toml Cargo.lock ./
 COPY contracts/ contracts/
-COPY programs/ programs/
 COPY core/ core/
 COPY sdk/ sdk/
 COPY cli/ cli/
+COPY prover/ prover/
 
 # Build Soroban Contracts
 RUN cargo build --manifest-path contracts/marketplace/Cargo.toml --target wasm32-unknown-unknown --release
 
-# Build Canonical Programs
-# (Note: RISC Zero programs require specific build steps, normally handled by cargo risczero build)
-RUN cargo build --manifest-path programs/hello_world/Cargo.toml --release
-RUN cargo build --manifest-path programs/hash_verification/Cargo.toml --release
-RUN cargo build --manifest-path programs/identity/Cargo.toml --release
-RUN cargo build --manifest-path programs/credit/Cargo.toml --release
-
-# Build Prover Daemon (and CLI)
-RUN cargo build --release
+# Build SP1 Programs and Prover Daemon
+# The prover is now in its own isolated workspace
+RUN cd prover && cargo build --release
 
 # ==============================================================================
 # Prover Node Runtime Stage
@@ -57,7 +52,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the compiled Prover daemon from the builder
-COPY --from=builder /workspace/target/release/sadgi-prover-node /app/sadgi-prover-node
+# Since the prover is its own workspace, target is in /workspace/prover/target
+COPY --from=builder /workspace/prover/target/release/sadgi-prover-node /app/sadgi-prover-node
 
 EXPOSE 8080
 

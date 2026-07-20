@@ -1,0 +1,11 @@
+[package]
+name = "sadgi-prover-node"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+tokio = { version = "1.32", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+hex = "0.4"
+sp1-sdk = { workspace = true }

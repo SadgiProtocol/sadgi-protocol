@@ -1,0 +1,49 @@
+---
+description: Mandatory rules for all UI implementation
+globs: *.html, *.css, *.js, *.jsx, *.tsx, *.ts
+---
+# Sadgi Design System Rules
+
+The project already contains an established design system installed via:
+`npx getdesign@latest add cursor`
+
+This design system is mandatory. All implementation must follow it exactly.
+
+- Do not regenerate components.
+- Do not replace components.
+- Do not redesign layouts.
+- Do not introduce external UI patterns.
+- Extend existing components only where necessary.
+- No visual decisions are to be made during implementation.
+
+The existing design system defines:
+- typography
+- spacing
+- layout
+- animation
+- interaction
+- accessibility
+- components
+- icons
+- color tokens
+
+Implementation must reuse these without modification.
+If a component is missing, create it following the established design language.
+No external inspiration is permitted.
+
+The design system has absolute priority over generated code.
+
+## Quality Checklist
+Every implementation must satisfy this checklist before completion:
+- [ ] Uses existing color tokens
+- [ ] Uses existing typography
+- [ ] Uses existing spacing
+- [ ] Uses existing shadows
+- [ ] Uses existing motion
+- [ ] Uses existing buttons
+- [ ] Uses existing cards
+- [ ] Uses existing icons
+- [ ] Uses existing layouts
+- [ ] Uses existing accessibility patterns
+
+If any answer is NO, stop implementation and refactor until every answer is YES.

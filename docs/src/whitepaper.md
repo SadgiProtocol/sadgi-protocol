@@ -41,18 +41,18 @@ The Sadgi Protocol operates as a multi-layered architecture bridging off-chain e
 
 1. **Developer SDK**: A Rust `no_std` library to easily request and verify proofs.
 2. **Compute Marketplace**: The decentralized clearinghouse where developers fund jobs and Provers compete to compute them.
-3. **Proof Engine**: The off-chain zkVM (initially RISC Zero) that generates the cryptographic receipts.
+3. **Proof Engine**: The off-chain zkVM (initially SP1) that generates the cryptographic receipts.
 4. **Soroban Verifier**: The on-chain settlement layer that verifies the mathematical soundness of the receipts.
 
 ### The Lifecycle of a Proof
 1. **Request**: A Developer submits a `JobRequest` to the Soroban Marketplace, escrowing an XLM bounty.
 2. **Matching**: The Compute Marketplace assigns the request to one or more Prover nodes based on capacity and reputation.
-3. **Execution**: The Prover executes the off-chain verifiable computation inside a zkVM and generates a `SadgiReceipt`.
-4. **Verification**: Soroban verifies the `SadgiReceipt` on-chain.
+3. **Execution**: The Prover executes the off-chain verifiable computation inside a zkVM and generates a `ProofReceipt`.
+4. **Verification**: Soroban verifies the `ProofReceipt` on-chain.
 5. **Settlement**: The Developer's XLM bounty is unlocked and transferred to the successful Prover.
 
 ## 5. Technology Choices
-- **Why Rust?**: Rust offers memory safety and is the native language for both Soroban smart contracts and RISC Zero guest programs. Developers only need to know one language.
+- **Why Rust?**: Rust offers memory safety and is the native language for both Soroban smart contracts and SP1 guest programs. Developers only need to know one language.
 - **Why zkVMs?**: Unlike circuit-based ZK systems (zk-SNARKs/STARKs), zkVMs allow developers to write standard software without needing to understand custom cryptographic circuits or polynomial arithmetic.
 - **Why Stellar?**: Stellar offers near-instant finality, incredibly low transaction fees, and a robust financial ecosystem (Anchors, USDC) perfectly suited for a high-throughput Compute Marketplace.
 
@@ -69,7 +69,7 @@ The Compute Marketplace is Sadgi's decentralized scheduling engine, optimizing f
 Sadgi is governed by a strict set of trust-minimizing design tenets:
 - **Stellar Native & XLM First**: Sadgi does not have a speculative protocol token. All economics and fees are denominated in XLM.
 - **Privacy by Default**: Data used to generate proofs remains strictly off-chain. Only the cryptographic Receipt and public journal are submitted to Soroban.
-- **Backend Agnostic**: While initially built for RISC Zero, the protocol is designed to support any zkVM backend in the future via a standard interface.
+- **Backend Agnostic**: While initially built for SP1, the protocol is designed to support any zkVM backend in the future via a standard interface.
 - **Minimal Trust Governance**: Governance is designed to manage parameters, not to custody user funds or manipulate proofs.
 
 ## 8. The Sadgi Standards

@@ -14,7 +14,7 @@ pub enum JobState {
     Executing,
     /// The Prover generated the receipt and submitted it to the network.
     Submitted,
-    /// The `SadgiReceipt` has been mathematically verified on-chain.
+    /// The `ProofReceipt` has been mathematically verified on-chain.
     Verified,
     /// Escrow funds have been released to the Prover, and stake returned.
     Settled,

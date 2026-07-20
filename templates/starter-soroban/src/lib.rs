@@ -1,6 +1,6 @@
 #![no_std]
 
-use sadgi_types::receipt::SadgiReceipt;
+use sadgi_types::receipt::ProofReceipt;
 use soroban_sdk::{contract, contractimpl, Address, Env};
 
 #[contract]
@@ -19,9 +19,9 @@ impl StarterContract {
     }
 
     /// Step 2: Once the Sadgi Prover finishes computing the job off-chain,
-    /// they submit the `SadgiReceipt` to the Marketplace. The Marketplace
+    /// they submit the `ProofReceipt` to the Marketplace. The Marketplace
     /// verifies it and can trigger a callback to this function.
-    pub fn process_receipt(env: Env, receipt: SadgiReceipt) {
+    pub fn process_receipt(env: Env, receipt: ProofReceipt) {
         // 1. Verify the Receipt using the official Sadgi Verifier Contract.
         // let is_valid = sadgi_verifier_client.verify(&receipt);
         // assert!(is_valid, "Invalid Zero-Knowledge Proof");

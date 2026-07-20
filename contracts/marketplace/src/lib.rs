@@ -6,8 +6,8 @@ pub mod scheduler;
 pub mod settlement;
 
 use sadgi_types::events::ProtocolEvent;
-use sadgi_types::receipt::SadgiReceipt;
-use soroban_sdk::{contract, contractimpl, Address, Env};
+use sadgi_types::receipt::ProofReceipt;
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Bytes, BytesN, Env, IntoVal};
 
 #[contract]
 pub struct SadgiMarketplace;
@@ -91,8 +91,15 @@ impl SadgiMarketplace {
         queue::Queue::update_job_state(&env, job_id, queue::JobState::Assigned);
     }
 
-    /// Provers call this to submit their final cryptographic receipt. (Fastest valid proof wins)
-    pub fn submit_proof(env: Env, prover: Address, job_id: u64, receipt: SadgiReceipt) {
+    /// Provers call this to submit their final cryptographic receipt.
+    pub fn submit_proof(
+        env: Env,
+        prover: Address,
+        job_id: u64,
+        receipt: ProofReceipt,
+        registry_id: Address,
+        verifier_id: Address,
+    ) {
         prover.require_auth();
 
         let job = queue::Queue::get_job(&env, job_id).expect("Job not found");
@@ -109,8 +116,25 @@ impl SadgiMarketplace {
             return;
         }
 
+        // 1. Fetch Verification Key from Registry
+        // (In a real implementation, we'd use the strongly typed client, but here we use invoke_contract for decoupling)
+        // Let's assume the registry returns a tuple of (vk, version, metadata) or a custom type.
+        // For simplicity in this architecture demo, we'll assume the registry returns the `vk` directly if we call `get_vk`.
+        let vk: Bytes = env.invoke_contract(
+            &registry_id,
+            &symbol_short!("get_vk"),
+            (receipt.program_id.clone(),).into_val(&env),
+        );
+
+        // 2. Call Verifier Contract
+        let is_valid: bool = env.invoke_contract(
+            &verifier_id,
+            &symbol_short!("verify"),
+            (receipt.proof.clone(), receipt.public_values.clone(), vk).into_val(&env),
+        );
+
         // Cryptographic Verification
-        if receipt.verify(&env) {
+        if is_valid {
             // Fastest valid proof wins! Release funds (5% marketplace fee)
             settlement::Settlement::release_funds(&env, prover.clone(), job.bounty, 5);
             queue::Queue::update_job_state(&env, job_id, queue::JobState::Settled);

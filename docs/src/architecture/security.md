@@ -8,7 +8,7 @@ The Sadgi Protocol is designed to be trustless. We assume that Provers are ratio
 **Penalty**: The Marketplace contract immediately slashes 100% of the malicious Prover's staked XLM. The mathematical certainty of getting caught makes this attack economically irrational.
 
 ## Threat 2: Front-Running (Bounty Stealing)
-**Attack**: Prover A spends 10 minutes computing a valid `SadgiReceipt`. As they submit it to Soroban, malicious Prover B sees the transaction in the mempool, copies the Receipt, and submits it with a higher gas fee to steal the bounty.
+**Attack**: Prover A spends 10 minutes computing a valid `ProofReceipt`. As they submit it to Soroban, malicious Prover B sees the transaction in the mempool, copies the Receipt, and submits it with a higher gas fee to steal the bounty.
 **Defense**: When a Developer queues a `JobRequest`, the Marketplace explicitly assigns it to a specific Prover's Stellar Address. Even if Prover B successfully front-runs the transaction, the Marketplace will reject the submission because `msg.sender != assigned_prover_address`.
 
 ## Threat 3: Replay Attacks

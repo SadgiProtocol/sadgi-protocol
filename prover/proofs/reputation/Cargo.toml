@@ -1,0 +1,9 @@
+[package]
+name = "reputation"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sp1-zkvm = { workspace = true }
+serde = { workspace = true }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

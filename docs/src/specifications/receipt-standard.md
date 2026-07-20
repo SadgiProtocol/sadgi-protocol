@@ -7,14 +7,14 @@ For Soroban smart contracts to trustlessly consume off-chain computations, they 
 
 ## The Data Schema
 
-A valid `SadgiReceipt` MUST be serialized using Soroban's native XDR types to minimize gas costs during on-chain verification.
+A valid `ProofReceipt` MUST be serialized using Soroban's native XDR types to minimize gas costs during on-chain verification.
 
 ```rust
 use soroban_sdk::{contracttype, Bytes, BytesN};
 
 #[contracttype]
-pub struct SadgiReceipt {
-    /// The 32-byte SHA-256 identifier of the zkVM Guest Program (e.g. RISC Zero Image ID).
+pub struct ProofReceipt {
+    /// The 32-byte SHA-256 identifier of the zkVM Guest Program (e.g. SP1 Image ID).
     pub image_id: BytesN<32>,
     
     /// The 32-byte Soroban Contract ID that requested this proof. 
@@ -33,7 +33,7 @@ pub struct SadgiReceipt {
 To prevent a malicious actor from intercepting a valid receipt and submitting it to a *different* contract to extract value, the `caller_contract_id` is cryptographically committed into the `journal` by the zkVM program. The Soroban Verifier MUST assert that `caller_contract_id == env.caller()`.
 
 ## Verification Flow
-When a Soroban contract receives a `SadgiReceipt`, it makes a Cross-Contract Call to the Official Sadgi Verifier Contract:
+When a Soroban contract receives a `ProofReceipt`, it makes a Cross-Contract Call to the Official Sadgi Verifier Contract:
 
 ```rust
 let is_valid = sadgi_verifier_client.verify(&receipt);

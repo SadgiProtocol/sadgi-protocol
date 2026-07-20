@@ -3,7 +3,7 @@
 Running a Sadgi Prover Node is a critical piece of the protocol's infrastructure. By running a node, you earn XLM bounties for successfully generating Zero-Knowledge proofs for developers on the Stellar network.
 
 ## Hardware Requirements
-- **CPU**: Multi-core processor (RISC Zero proving is highly parallelizable).
+- **CPU**: Multi-core processor (SP1 proving is highly parallelizable).
 - **RAM**: Minimum 16GB (32GB+ recommended for complex state transitions).
 - **Storage**: 100GB SSD for maintaining the Soroban ledger index.
 

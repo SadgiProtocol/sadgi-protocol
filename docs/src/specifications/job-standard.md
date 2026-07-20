@@ -40,5 +40,5 @@ pub enum JobMode {
 ## The Escrow Lifecycle
 1. **Queued**: The `sponsor` calls the Marketplace contract, locking the `bounty`.
 2. **Assigned**: The Scheduler matches the `JobRequest` to active Provers.
-3. **Fulfilled**: A Prover submits a valid `SadgiReceipt`. The `bounty` is unlocked and transferred.
+3. **Fulfilled**: A Prover submits a valid `ProofReceipt`. The `bounty` is unlocked and transferred.
 4. **Expired**: If the `deadline_ledger` passes without a valid receipt, the `bounty` is refunded to the `sponsor`.

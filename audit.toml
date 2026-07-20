@@ -1,20 +1,10 @@
 # cargo-audit configuration
-# These advisories are in transitive dependencies of risc0-zkvm v1.0.1 and
-# soroban-sdk v20.x that we cannot upgrade until the upstream SDKs release
-# compatible versions. They are tracked and will be resolved when we migrate
-# to newer SDK versions.
+# These advisories are in transitive dependencies of soroban-sdk v20.x
+# that we cannot upgrade until the upstream SDKs release compatible versions.
+# They are tracked and will be resolved when we migrate to newer SDK versions.
 
 [advisories]
-# curve25519-dalek timing variability - in risc0 transitive deps
 ignore = [
-    "RUSTSEC-2024-0344",   # curve25519-dalek: timing variability
-    "RUSTSEC-2026-0037",   # quinn-proto: DoS in endpoints (risc0-zkvm dep)
-    "RUSTSEC-2026-0185",   # quinn-proto: memory exhaustion (risc0-zkvm dep)
-    "RUSTSEC-2026-0009",   # time: stack exhaustion (risc0-zkvm dep)
-    "RUSTSEC-2025-0055",   # tracing-subscriber: ANSI injection (risc0-zkvm dep)
     "RUSTSEC-2025-0056",   # adler: unmaintained (soroban-wasmi dep)
-    "RUSTSEC-2025-0141",   # bincode: unmaintained (risc0-zkvm dep)
-    "RUSTSEC-2024-0388",   # derivative: unmaintained (risc0 dep)
-    "RUSTSEC-2024-0436",   # paste: unmaintained (risc0 dep)
     "RUSTSEC-2026-0097",   # rand 0.8: unsound (soroban dep)
 ]
