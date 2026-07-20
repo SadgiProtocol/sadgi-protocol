@@ -1,4 +1,5 @@
 #![no_main]
+#![allow(dead_code)]
 sp1_zkvm::entrypoint!(main);
 
 use serde::Deserialize;
