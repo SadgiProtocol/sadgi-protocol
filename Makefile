@@ -26,22 +26,22 @@ build: contracts-build programs-build sdk-build cli-build
 
 ## contracts-build: Compile Soroban smart contracts to WebAssembly
 contracts-build:
-	cargo build --manifest-path contracts/marketplace/Cargo.toml --target wasm32-unknown-unknown --profile $(PROFILE)
+	cargo build --manifest-path contracts/marketplace/Cargo.toml --target wasm32-unknown-unknown --profile $(PROFILE) --locked
 
 ## programs-build: Compile Canonical Reference Programs to RISC-V
 programs-build:
-	cargo build --manifest-path programs/hello_world/Cargo.toml --profile $(PROFILE)
-	cargo build --manifest-path programs/hash_verification/Cargo.toml --profile $(PROFILE)
-	cargo build --manifest-path programs/identity/Cargo.toml --profile $(PROFILE)
-	cargo build --manifest-path programs/credit/Cargo.toml --profile $(PROFILE)
+	cargo build --manifest-path programs/hello_world/Cargo.toml --profile $(PROFILE) --locked
+	cargo build --manifest-path programs/hash_verification/Cargo.toml --profile $(PROFILE) --locked
+	cargo build --manifest-path programs/identity/Cargo.toml --profile $(PROFILE) --locked
+	cargo build --manifest-path programs/credit/Cargo.toml --profile $(PROFILE) --locked
 
 ## sdk-build: Compile the Rust Developer SDK
 sdk-build:
-	cargo build --manifest-path sdk/sadgi-sdk/Cargo.toml --profile $(PROFILE)
+	cargo build --manifest-path sdk/sadgi-sdk/Cargo.toml --profile $(PROFILE) --locked
 
 ## cli-build: Compile the Developer CLI
 cli-build:
-	cargo build --manifest-path cli/sadgi-cli/Cargo.toml --profile $(PROFILE)
+	cargo build --manifest-path cli/sadgi-cli/Cargo.toml --profile $(PROFILE) --locked
 
 # ==============================================================================
 # Quality Assurance
@@ -49,7 +49,7 @@ cli-build:
 
 ## test: Run all unit and integration tests across the workspace
 test:
-	cargo test --workspace
+	cargo test --workspace --locked
 
 ## format: Format all Rust code
 format:
@@ -57,7 +57,7 @@ format:
 
 ## lint: Run clippy and check for dead code/bad patterns
 lint:
-	cargo clippy --workspace --all-targets --all-features -- -D warnings
+	cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
 ## bench: Run performance benchmarks
 bench:
