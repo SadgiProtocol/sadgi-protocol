@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contracttype, BytesN, Symbol, Bytes};
+use soroban_sdk::{contracttype, Bytes, BytesN, Symbol};
 
 /// The Canonical Journal structure that EVERY reference program must commit.
 #[contracttype]
@@ -31,7 +31,7 @@ pub struct PublicRequirement {
     /// The threshold the user must meet (e.g., 18 for age, 700 for credit).
     pub threshold: u64,
     /// Operator: e.g., 0 for Equal, 1 for GreaterThanOrEqual
-    pub operator: u32, 
+    pub operator: u32,
 }
 
 /// Pluggable interface for verifying Issuer Signatures within the zkVM.

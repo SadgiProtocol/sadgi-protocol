@@ -2,7 +2,7 @@
 
 pub mod client;
 
-use sadgi_types::receipt::{SadgiReceipt, ReceiptHeader, ReceiptMetadata, BackendType};
+use sadgi_types::receipt::{BackendType, ReceiptHeader, ReceiptMetadata, SadgiReceipt};
 use soroban_sdk::{Bytes, BytesN, Env};
 
 /// Builder pattern for safely constructing a generic `SadgiReceipt`.
@@ -78,11 +78,17 @@ impl<'a> ReceiptBuilder<'a> {
             header: ReceiptHeader {
                 version: self.version,
                 timestamp: self.timestamp,
-                receipt_hash: self.receipt_hash.unwrap_or_else(|| BytesN::from_array(self.env, &[0; 32])),
+                receipt_hash: self
+                    .receipt_hash
+                    .unwrap_or_else(|| BytesN::from_array(self.env, &[0; 32])),
             },
             metadata: ReceiptMetadata {
-                program_id: self.program_id.unwrap_or_else(|| BytesN::from_array(self.env, &[0; 32])),
-                execution_id: self.execution_id.unwrap_or_else(|| BytesN::from_array(self.env, &[0; 32])),
+                program_id: self
+                    .program_id
+                    .unwrap_or_else(|| BytesN::from_array(self.env, &[0; 32])),
+                execution_id: self
+                    .execution_id
+                    .unwrap_or_else(|| BytesN::from_array(self.env, &[0; 32])),
                 backend: self.backend,
             },
             journal: self.journal.unwrap_or_else(|| Bytes::new(self.env)),

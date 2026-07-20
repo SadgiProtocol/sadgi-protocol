@@ -12,19 +12,14 @@ pub enum ProtocolEvent {
         bounty: i128,
     },
     /// A Prover was selected from the queue.
-    JobAssigned {
-        job_id: u64,
-        prover: Address,
-    },
+    JobAssigned { job_id: u64, prover: Address },
     /// Prover generated the receipt and submitted it.
     ProofSubmitted {
         job_id: u64,
         receipt_hash: BytesN<32>,
     },
     /// Verifier mathematically verified the receipt.
-    ProofVerified {
-        job_id: u64,
-    },
+    ProofVerified { job_id: u64 },
     /// Funds have been sent to the prover.
     RewardPaid {
         job_id: u64,

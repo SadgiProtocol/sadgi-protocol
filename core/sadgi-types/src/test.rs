@@ -1,12 +1,12 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{Env, Bytes, BytesN};
+use soroban_sdk::{Bytes, BytesN, Env};
 
 #[test]
 fn test_receipt_serialization() {
     let env = Env::default();
-    
+
     let original = receipt::SadgiReceipt {
         header: receipt::ReceiptHeader {
             version: 1,

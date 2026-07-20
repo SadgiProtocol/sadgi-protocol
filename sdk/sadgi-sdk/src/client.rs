@@ -1,7 +1,7 @@
 #![no_std]
 
-use soroban_sdk::{contractclient, Address, Env};
 use sadgi_types::receipt::SadgiReceipt;
+use soroban_sdk::{contractclient, Address, Env};
 
 #[contractclient(name = "MarketplaceClient")]
 pub trait MarketplaceTrait {

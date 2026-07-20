@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{Env, Address};
+use soroban_sdk::{Address, Env};
 
 pub struct Escrow;
 

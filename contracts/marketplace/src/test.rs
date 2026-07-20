@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{testutils::Events, Env, symbol_short};
+use soroban_sdk::{symbol_short, testutils::Events, Env};
 
 #[test]
 fn test_job_creation_and_fulfillment() {

@@ -1,7 +1,7 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec, Val
+    contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Val, Vec,
 };
 
 #[contracttype]
@@ -37,16 +37,18 @@ impl SadgiAdministration {
         if env.storage().instance().has(&DataKey::CouncilSize) {
             panic!("Already initialized");
         }
-        
+
         let size = initial_council.len();
         if size == 0 {
             panic!("Council must have at least 1 member");
         }
 
         for member in initial_council.iter() {
-            env.storage().instance().set(&DataKey::IsCouncilMember(member), &true);
+            env.storage()
+                .instance()
+                .set(&DataKey::IsCouncilMember(member), &true);
         }
-        
+
         env.storage().instance().set(&DataKey::CouncilSize, &size);
         env.storage().instance().set(&DataKey::ProposalCount, &0u32);
     }
@@ -61,12 +63,21 @@ impl SadgiAdministration {
         lifetime_ledgers: u32,
     ) -> u32 {
         proposer.require_auth();
-        
-        if !env.storage().instance().get(&DataKey::IsCouncilMember(proposer.clone())).unwrap_or(false) {
+
+        if !env
+            .storage()
+            .instance()
+            .get(&DataKey::IsCouncilMember(proposer.clone()))
+            .unwrap_or(false)
+        {
             panic!("Not a council member");
         }
-        
-        let mut count: u32 = env.storage().instance().get(&DataKey::ProposalCount).unwrap_or(0);
+
+        let mut count: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::ProposalCount)
+            .unwrap_or(0);
         count += 1;
 
         let proposal = Proposal {
@@ -80,9 +91,15 @@ impl SadgiAdministration {
             expiration_ledger: env.ledger().sequence() + lifetime_ledgers,
         };
 
-        env.storage().persistent().set(&DataKey::Proposal(count), &proposal);
-        env.storage().persistent().set(&DataKey::HasApproved(count, proposer), &true);
-        env.storage().instance().set(&DataKey::ProposalCount, &count);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Proposal(count), &proposal);
+        env.storage()
+            .persistent()
+            .set(&DataKey::HasApproved(count, proposer), &true);
+        env.storage()
+            .instance()
+            .set(&DataKey::ProposalCount, &count);
 
         count
     }
@@ -91,11 +108,20 @@ impl SadgiAdministration {
     pub fn approve(env: Env, council_member: Address, proposal_id: u32) {
         council_member.require_auth();
 
-        if !env.storage().instance().get(&DataKey::IsCouncilMember(council_member.clone())).unwrap_or(false) {
+        if !env
+            .storage()
+            .instance()
+            .get(&DataKey::IsCouncilMember(council_member.clone()))
+            .unwrap_or(false)
+        {
             panic!("Not a council member");
         }
 
-        if env.storage().persistent().has(&DataKey::HasApproved(proposal_id, council_member.clone())) {
+        if env
+            .storage()
+            .persistent()
+            .has(&DataKey::HasApproved(proposal_id, council_member.clone()))
+        {
             panic!("Already approved");
         }
 
@@ -108,15 +134,19 @@ impl SadgiAdministration {
         if proposal.executed {
             panic!("Proposal already executed");
         }
-        
+
         if env.ledger().sequence() > proposal.expiration_ledger {
             panic!("Proposal expired");
         }
 
         proposal.approvals += 1;
 
-        env.storage().persistent().set(&DataKey::Proposal(proposal_id), &proposal);
-        env.storage().persistent().set(&DataKey::HasApproved(proposal_id, council_member), &true);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Proposal(proposal_id), &proposal);
+        env.storage()
+            .persistent()
+            .set(&DataKey::HasApproved(proposal_id, council_member), &true);
     }
 
     /// Execute a proposal if it has reached the M-of-N threshold.
@@ -132,16 +162,20 @@ impl SadgiAdministration {
         if proposal.executed {
             panic!("Already executed");
         }
-        
+
         if env.ledger().sequence() > proposal.expiration_ledger {
             panic!("Proposal expired");
         }
 
-        let council_size: u32 = env.storage().instance().get(&DataKey::CouncilSize).unwrap_or(0);
-        
+        let council_size: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::CouncilSize)
+            .unwrap_or(0);
+
         // M-of-N Threshold (e.g. 51% majority)
         let threshold = (council_size / 2) + 1;
-        
+
         if proposal.approvals < threshold {
             panic!("Proposal has not reached approval threshold");
         }
@@ -155,7 +189,9 @@ impl SadgiAdministration {
         );
 
         proposal.executed = true;
-        env.storage().persistent().set(&DataKey::Proposal(proposal_id), &proposal);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Proposal(proposal_id), &proposal);
     }
 
     /// Read-only: Get a proposal's current state
