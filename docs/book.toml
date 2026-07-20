@@ -1,0 +1,11 @@
+[book]
+authors = ["Sadgi Core Contributors"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Sadgi Protocol Documentation"
+
+[output.html]
+git-repository-url = "https://github.com/SadgiProtocol/sadgi-protocol"
+edit-url-template = "https://github.com/SadgiProtocol/sadgi-protocol/edit/main/docs/{path}"
+mathjax-support = true
