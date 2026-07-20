@@ -49,7 +49,7 @@ jobs:
       - name: Dependency Audit
         run: |
           cargo install cargo-audit --locked
-          cargo audit
+          cargo audit --config audit.toml
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 3: Build our own crate code only (no external deps compiled in CI).
