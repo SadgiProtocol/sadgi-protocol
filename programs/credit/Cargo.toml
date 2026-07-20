@@ -5,6 +5,6 @@ edition = "2021"
 description = "Canonical Credit Score Reference Program for Sadgi Protocol"
 
 [dependencies]
-risc0-zkvm = "1.0.0"
+risc0-zkvm = { workspace = true }
 sadgi-types = { path = "../../core/sadgi-types" }
-soroban-sdk = { version = "22.0.11" }
+soroban-sdk = { workspace = true }

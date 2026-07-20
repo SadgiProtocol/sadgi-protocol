@@ -1,7 +1,6 @@
 [book]
 authors = ["Sadgi Core Contributors"]
 language = "en"
-multilingual = false
 src = "src"
 title = "Sadgi Protocol Documentation"
 

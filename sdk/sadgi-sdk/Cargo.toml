@@ -8,5 +8,5 @@ description = "Sadgi Protocol Developer SDK"
 crate-type = ["rlib"]
 
 [dependencies]
-soroban-sdk = { version = "22.0.11" }
+soroban-sdk = { workspace = true }
 sadgi-types = { path = "../../core/sadgi-types" }
