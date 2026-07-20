@@ -1,0 +1,92 @@
+name: Sadgi Protocol Delivery Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  workspace-validation:
+    name: Workspace Validation & Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Rustfmt Check
+        run: cargo fmt --all -- --check
+        
+      - name: Clippy Lints
+        run: cargo clippy --workspace --all-targets --all-features
+        
+      - name: Dependency Audit
+        run: |
+          cargo install cargo-audit
+          cargo audit
+          
+      - name: Documentation Link Check
+        run: cargo doc --no-deps --workspace
+
+  build-and-test:
+    name: Build & Test (Linux Environment)
+    needs: workspace-validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust & Wasm target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          
+      - name: Install RISC Zero
+        run: |
+          cargo binstall -y cargo-risczero
+          cargo risczero install
+          
+      - name: Build Contracts (Soroban)
+        run: make contracts-build
+        
+      - name: Build Reference Programs (RISC-V)
+        run: make programs-build
+        
+      - name: Workspace Unit & Integration Tests
+        run: make test
+        
+      - name: Benchmark Automation (Regression Checks)
+        run: make bench
+
+  docker-publish:
+    name: Build & Publish Prover Image
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}/sadgi-prover:latest
+          target: prover

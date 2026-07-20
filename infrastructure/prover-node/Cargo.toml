@@ -1,0 +1,9 @@
+[package]
+name = "sadgi-prover-node"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sadgi-types = { path = "../../core/sadgi-types" }
+tokio = { version = "1.32", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }

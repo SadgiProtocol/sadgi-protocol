@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --bg-root: #09090b;
+  --bg-panel: #18181b;
+  --bg-panel-hover: #27272a;
+  
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+  
+  --border-subtle: #27272a;
+  --border-focus: #3f3f46;
+  
+  --accent: #e4e4e7;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-root);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Removed all glowing gradients and radial effects */
+}
+
+/* Base Panel - Cursor Style (No glassmorphism, no blurs, sharp or slightly rounded corners) */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.panel-interactive {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 16px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.panel-interactive:hover {
+  background: var(--bg-panel-hover);
+  border-color: var(--border-focus);
+}
+
+/* Typography Overrides */
+.mono {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--accent);
+  color: #09090b;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-panel-hover);
+}
+
+/* Status Indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot.blue { background-color: var(--accent-blue); }
+.status-dot.green { background-color: var(--accent-green); }
+.status-dot.gray { background-color: var(--text-muted); }
+
+/* Layout Grid */
+.layout-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 32px;
+}
+
+.grid-dashboard {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  height: calc(100vh - 124px); /* Full height minus header and margins */
+}
+
+@media (max-width: 900px) {
+  .grid-dashboard {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+/* Table / List structure resembling terminal output */
+.log-row {
+  display: grid;
+  grid-template-columns: 80px 140px 120px 1fr 100px;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  align-items: center;
+}
+
+.log-row:last-child {
+  border-bottom: none;
+}
+
+.log-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}

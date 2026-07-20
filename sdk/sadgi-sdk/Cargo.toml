@@ -1,0 +1,12 @@
+[package]
+name = "sadgi-sdk"
+version = "0.1.0"
+edition = "2021"
+description = "Sadgi Protocol Developer SDK"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+soroban-sdk = { version = "22.0.11" }
+sadgi-types = { path = "../../core/sadgi-types" }

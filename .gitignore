@@ -1,0 +1,30 @@
+# Build Artifacts
+/target/
+/contracts/**/target/
+/programs/**/target/
+/core/**/target/
+/sdk/**/target/
+/cli/**/target/
+/dashboard/.next/
+/dashboard/out/
+/dashboard/build/
+/dashboard/node_modules/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Developer Environment
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Soroban State
+.soroban/
+soroban-data/

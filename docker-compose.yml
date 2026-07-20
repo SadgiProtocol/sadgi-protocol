@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # 1. Soroban Localnet (Stellar Sandbox)
+  soroban-localnet:
+    image: stellar/quickstart:latest
+    command: --local --enable-soroban-rpc
+    ports:
+      - "8000:8000"
+    volumes:
+      - soroban-data:/opt/stellar
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Sadgi Mock Prover Node
+  # Simulates the RISC Zero ZK Prover for local development
+  mock-prover:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prover
+    environment:
+      - STELLAR_NETWORK_URL=http://soroban-localnet:8000
+      - MOCK_MODE=true
+    depends_on:
+      soroban-localnet:
+        condition: service_healthy
+
+  # 3. Next.js Explorer Dashboard
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_RPC_URL=http://localhost:8000
+    depends_on:
+      - soroban-localnet
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+
+volumes:
+  soroban-data:

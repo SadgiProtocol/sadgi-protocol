@@ -1,0 +1,10 @@
+[package]
+name = "sadgi-credit-program"
+version = "0.1.0"
+edition = "2021"
+description = "Canonical Credit Score Reference Program for Sadgi Protocol"
+
+[dependencies]
+risc0-zkvm = "1.0.0"
+sadgi-types = { path = "../../core/sadgi-types" }
+soroban-sdk = { version = "22.0.11" }
