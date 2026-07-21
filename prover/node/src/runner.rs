@@ -44,13 +44,15 @@ impl ProofBackend for SP1ProverBackend {
         let elf_bytes: &'static [u8] = Box::leak(elf.into_boxed_slice());
 
         let client = ProverClient::from_env().await;
-        let (pk, _) = client.setup(sp1_sdk::Elf::Static(elf_bytes)).await;
+        let pk = client
+            .setup(sp1_sdk::Elf::Static(elf_bytes))
+            .await
+            .map_err(|e| e.to_string())?;
 
         // We generate a core STARK proof (faster than Groth16, suitable for Oracle bridge)
         println!("Generating Core STARK Proof...");
         let proof = client
             .prove(&pk, stdin)
-            .run()
             .await
             .map_err(|e| format!("{:?}", e))?;
 

@@ -25,6 +25,17 @@ fn test_e2e_job_lifecycle() {
     let marketplace_id = env.register_contract(None, SadgiMarketplace);
     let marketplace_client = SadgiMarketplaceClient::new(&env, &marketplace_id);
 
+    // Initialize Marketplace
+    let admin = soroban_sdk::Address::generate(&env);
+    let token_admin = soroban_sdk::Address::generate(&env);
+    let token = env.register_stellar_asset_contract(token_admin.clone());
+    let treasury = soroban_sdk::Address::generate(&env);
+    marketplace_client.initialize(&admin, &token, &treasury);
+
+    // Mint some tokens to the developer so they can pay the bounty
+    let token_admin_client = soroban_sdk::token::StellarAssetClient::new(&env, &token);
+    token_admin_client.mint(&developer, &10000i128);
+
     // 3. Register a Program in the Registry
     let program_id = BytesN::from_array(&env, &[7; 32]);
     let vk = Bytes::from_slice(&env, &[1, 2, 3]); // Mock VK

@@ -1,6 +1,7 @@
 use crate::backend::{BackendType, ProverReceipt};
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Job {
     pub id: u64,
     pub program_id: [u8; 32],

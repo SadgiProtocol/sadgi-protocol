@@ -16,4 +16,5 @@ publish = false
 [workspace.dependencies]
 sp1-sdk = "6.3.1"
 sp1-zkvm = "6.3.1"
+sp1-build = "6.3.1"
 serde = { version = "1.0", features = ["derive"] }

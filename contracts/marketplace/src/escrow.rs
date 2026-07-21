@@ -4,8 +4,6 @@ pub struct Escrow;
 
 impl Escrow {
     pub fn lock_funds(env: &Env, developer: Address, amount: i128) {
-        developer.require_auth();
-
         let key_token = symbol_short!("token_adr");
         let token_addr: Address = env
             .storage()

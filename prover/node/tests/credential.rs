@@ -8,6 +8,7 @@ use std::fs;
 
 #[tokio::test]
 async fn test_credential_verification_success() {
+    sp1_sdk::utils::setup_logger();
     // 1. Setup Keys
     let mut csprng = OsRng;
     let issuer_keypair = SigningKey::generate(&mut csprng);
@@ -41,7 +42,7 @@ async fn test_credential_verification_success() {
     let trusted_issuers_root: [u8; 32] = hasher.finalize().into();
 
     let merkle_path = vec![leaf1, node23];
-    let merkle_indices = vec![true, true]; // leaf1 is on the right of leaf0, node23 is on the right of node01
+    let merkle_indices = vec![false, false]; // guest hashes current_hash then sibling if false
 
     // 3. Create Payload
     let payload = CredentialPayload {
@@ -73,7 +74,7 @@ async fn test_credential_verification_success() {
     let elf_path = std::path::PathBuf::from(
         "../../prover/target/elf-compilation/riscv64im-succinct-zkvm-elf/release/credential",
     );
-    let elf = fs::read(&elf_path)
+    let elf = std::fs::read(&elf_path)
         .expect("Failed to read ELF. Run `cargo prove build` in prover/proofs/credential first.");
     let elf_bytes: &'static [u8] = Box::leak(elf.into_boxed_slice());
 
@@ -83,10 +84,6 @@ async fn test_credential_verification_success() {
         .await
         .unwrap();
 
-    println!(
-        "Execution completed successfully! Cycles: {}",
-        execution_report.total_instruction_count()
-    );
     let output = public_values.read::<CredentialVerificationOutput>();
     println!("Public Output: {:#?}", output);
 
