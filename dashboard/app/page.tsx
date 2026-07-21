@@ -2,8 +2,8 @@
 
 import { Terminal, Database, Activity, GitCommit, FileCode, Clock, Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
-import { isAllowed, setAllowed, getUserInfo, signTransaction } from "@stellar/freighter-api";
-import { rpc, TransactionBuilder, Networks, SorobanRpc } from "@stellar/stellar-sdk";
+import { isAllowed, setAllowed, getAddress, signTransaction } from "@stellar/freighter-api";
+import { rpc, TransactionBuilder, Networks } from "@stellar/stellar-sdk";
 
 // Stellar Testnet configuration
 const RPC_URL = "https://soroban-testnet.stellar.org";
@@ -86,9 +86,9 @@ export default function Dashboard() {
   const checkWalletConnection = async () => {
     try {
       if (await isAllowed()) {
-        const user = await getUserInfo();
-        if (user.publicKey) {
-          setWalletAddress(user.publicKey);
+        const user = await getAddress();
+        if (user.address) {
+          setWalletAddress(user.address);
         }
       }
     } catch (e) {

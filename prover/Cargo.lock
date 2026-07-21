@@ -1350,6 +1350,9 @@ dependencies = [
 [[package]]
 name = "hash"
 version = "0.1.0"
+dependencies = [
+ "sp1-zkvm",
+]
 
 [[package]]
 name = "hashbrown"
@@ -1394,6 +1397,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 [[package]]
 name = "hello_world"
 version = "0.1.0"
+dependencies = [
+ "sp1-zkvm",
+]
 
 [[package]]
 name = "hermit-abi"
@@ -3384,6 +3390,9 @@ dependencies = [
 [[package]]
 name = "signature"
 version = "0.1.0"
+dependencies = [
+ "sp1-zkvm",
+]
 
 [[package]]
 name = "signature"
@@ -4735,6 +4744,9 @@ dependencies = [
 [[package]]
 name = "threshold"
 version = "0.1.0"
+dependencies = [
+ "sp1-zkvm",
+]
 
 [[package]]
 name = "time"
