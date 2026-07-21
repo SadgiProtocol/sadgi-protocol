@@ -12,7 +12,7 @@ pub async fn execute_job(job: Job) -> ProverReceipt {
                 inputs: vec![],
             };
 
-            match backend.prove(req) {
+            match backend.prove(req).await {
                 Ok(proof) => runner::generate_oracle_receipt(&backend, job.program_id, proof),
                 Err(e) => {
                     println!("Proof generation failed: {}", e);

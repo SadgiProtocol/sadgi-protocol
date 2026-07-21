@@ -34,6 +34,6 @@ pub trait ProofBackend {
     type Proof: Debug;
     type PublicValues: Debug;
 
-    fn prove(&self, request: ProofRequest) -> Result<Self::Proof, String>;
+    async fn prove(&self, request: ProofRequest) -> Result<Self::Proof, String>;
     fn verify(&self, proof: &Self::Proof) -> Result<VerificationResult, String>;
 }

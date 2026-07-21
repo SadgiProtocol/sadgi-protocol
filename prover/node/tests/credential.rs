@@ -2,7 +2,7 @@ use ed25519_dalek::{Signer, SigningKey};
 use rand::rngs::OsRng;
 use sadgi_types::credential::{CredentialPayload, CredentialVerificationOutput};
 use sha2::{Digest, Sha256};
-use sp1_sdk::{Prover, ProverClient, SP1Stdin};
+use sp1_sdk::{Prover, SP1Stdin};
 
 use std::fs;
 
@@ -16,7 +16,7 @@ async fn test_credential_verification_success() {
 
     // 2. Setup Merkle Tree (Depth 2 for test)
     let mut hasher = Sha256::new();
-    hasher.update(&issuer_pubkey_bytes);
+    hasher.update(issuer_pubkey_bytes);
     let leaf0: [u8; 32] = hasher.finalize().into(); // Our trusted issuer
 
     let leaf1 = [1u8; 32]; // Dummy issuer

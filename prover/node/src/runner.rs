@@ -1,10 +1,9 @@
 use crate::backend::{BackendType, ProofBackend, ProofRequest, ProverReceipt, VerificationResult};
 use ed25519_dalek::{Signer, SigningKey};
-use sp1_sdk::{ProverClient, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::{Prover, ProverClient, SP1ProofWithPublicValues, SP1Stdin};
 use std::fs;
 
 pub struct SP1ProverBackend {
-    client: ProverClient,
     oracle_key: SigningKey,
 }
 
@@ -16,7 +15,6 @@ impl SP1ProverBackend {
         let oracle_key = SigningKey::from_bytes(&secret);
 
         Self {
-            client: ProverClient::new(),
             oracle_key,
         }
     }
@@ -36,7 +34,7 @@ impl ProofBackend for SP1ProverBackend {
     type Proof = SP1ProofWithPublicValues;
     type PublicValues = Vec<u8>;
 
-    fn prove(&self, request: ProofRequest) -> Result<Self::Proof, String> {
+    async fn prove(&self, request: ProofRequest) -> Result<Self::Proof, String> {
         println!("Executing SP1 Guest Program...");
 
         let mut stdin = SP1Stdin::new();
@@ -45,16 +43,18 @@ impl ProofBackend for SP1ProverBackend {
         // We assume program_id maps to "credential" or "threshold" for this PoC.
         // In production, a decentralized storage layer maps IDs to ELFs.
         let elf = self.get_elf("credential")?;
+        let elf_bytes: &'static [u8] = Box::leak(elf.into_boxed_slice());
 
-        let (pk, _) = self.client.setup(&elf);
+        let client = ProverClient::from_env().await;
+        let (pk, _) = client.setup(sp1_sdk::Elf::Static(elf_bytes)).await;
 
         // We generate a core STARK proof (faster than Groth16, suitable for Oracle bridge)
         println!("Generating Core STARK Proof...");
-        let proof = self
-            .client
+        let proof = client
             .prove(&pk, stdin)
             .run()
-            .map_err(|e| e.to_string())?;
+            .await
+            .map_err(|e| format!("{:?}", e))?;
 
         Ok(proof)
     }
