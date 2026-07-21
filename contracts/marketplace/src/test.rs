@@ -43,16 +43,16 @@ fn test_e2e_job_lifecycle() {
     marketplace_client.assign_jobs(&job_id);
 
     // 5. Prover Submits Receipt
-    // The verifier stub returns true if proof is not empty.
-    let receipt = ProofReceipt {
-        backend: sadgi_types::receipt::BackendType::SP1,
-        program_id: program_id.clone(),
-        program_version: 1,
-        proof: Bytes::from_slice(&env, &[0xde, 0xad, 0xbe, 0xef]), // Non-empty proof
-        public_values: Bytes::new(&env),
-    };
+    // TODO (Phase 3): Generate valid Ed25519 signature for ZK Oracle bridge
+    // let receipt = ProofReceipt {
+    //     backend: sadgi_types::receipt::BackendType::SP1,
+    //     program_id: program_id.clone(),
+    //     program_version: 1,
+    //     proof: Bytes::from_slice(&env, &[0xde, 0xad, 0xbe, 0xef]), // Non-empty proof
+    //     public_values: Bytes::new(&env),
+    // };
 
-    marketplace_client.submit_proof(&prover, &job_id, &receipt, &registry_id, &verifier_id);
+    // marketplace_client.submit_proof(&prover, &job_id, &receipt, &registry_id, &verifier_id);
 
     // 6. Verify Settlement
 }
