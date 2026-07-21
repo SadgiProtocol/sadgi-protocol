@@ -13,10 +13,11 @@ pub async fn execute_job(job: Job) -> ProverReceipt {
             };
 
             match backend.prove(req) {
-                Ok(_proof) => runner::dummy_success_receipt(job.program_id, BackendType::SP1),
+                Ok(proof) => runner::generate_oracle_receipt(&backend, job.program_id, proof),
                 Err(e) => {
                     println!("Proof generation failed: {}", e);
-                    runner::dummy_success_receipt(job.program_id, BackendType::SP1)
+                    // In a real system we would return a failed receipt or error
+                    panic!("Proof failed: {}", e);
                 }
             }
         }
