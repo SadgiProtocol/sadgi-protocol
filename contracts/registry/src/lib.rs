@@ -105,7 +105,7 @@ impl ProgramRegistry {
 #[cfg(test)]
 mod test {
     use super::*;
-    use soroban_sdk::Env;
+    use soroban_sdk::{testutils::Address as _, Env};
 
     #[test]
     fn test_register_and_get() {
