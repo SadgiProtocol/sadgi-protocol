@@ -15,7 +15,8 @@ impl Escrow {
 
         // Transfer funds from Developer to Escrow (this contract)
         let token = token::Client::new(env, &token_addr);
-        token.transfer(&developer, &env.current_contract_address(), &amount);
+        let contract_addr = env.current_contract_address();
+        token.transfer(&developer, &contract_addr, &amount);
 
         env.storage().instance().set(&developer, &amount);
     }

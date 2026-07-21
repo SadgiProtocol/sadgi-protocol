@@ -26,11 +26,12 @@ impl Settlement {
 
         let token = token::Client::new(env, &token_addr);
 
+        let contract_addr = env.current_contract_address();
         // Disburse to Prover
-        token.transfer(&env.current_contract_address(), &prover, &prover_reward);
+        token.transfer(&contract_addr, &prover, &prover_reward);
         // Disburse to Treasury
         token.transfer(
-            &env.current_contract_address(),
+            &contract_addr,
             &treasury_addr,
             &treasury_fee,
         );
@@ -60,7 +61,7 @@ impl Settlement {
                 let slash_amount = profile.staked_xlm / 2;
                 profile.staked_xlm -= slash_amount;
 
-                let key_token = symbol_short!("token_addr");
+                let key_token = symbol_short!("token_adr");
                 let key_treasury = symbol_short!("treasury");
 
                 let token_addr: Address = env
