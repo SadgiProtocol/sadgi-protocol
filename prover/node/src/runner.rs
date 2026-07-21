@@ -1,17 +1,13 @@
 use crate::backend::{BackendType, ProofBackend, ProofRequest, ProverReceipt, VerificationResult};
-use sp1_sdk::{ProverClient, SP1ProofWithPublicValues, SP1Stdin};
+use sp1_sdk::{SP1ProofWithPublicValues, SP1Stdin};
 use std::fs;
 use std::process::Command;
 
-pub struct SP1ProverBackend {
-    client: ProverClient,
-}
+pub struct SP1ProverBackend {}
 
 impl SP1ProverBackend {
     pub fn new() -> Self {
-        Self {
-            client: ProverClient::new(),
-        }
+        Self {}
     }
 
     /// Helper to check if Docker is running, which is required for Groth16 proofs via Succinct's containers.
@@ -46,7 +42,7 @@ impl ProofBackend for SP1ProverBackend {
         let mut stdin = SP1Stdin::new();
         stdin.write_slice(&request.inputs);
 
-        let elf = self.get_elf(request.program_id, request.program_version)?;
+        let _elf = self.get_elf(request.program_id, request.program_version)?;
 
         // This fails if elf is empty, but we'll leave it as a stub.
         /*
