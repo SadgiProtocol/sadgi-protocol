@@ -17,6 +17,6 @@ impl Groth16Verifier {
         _verification_key: Bytes,
     ) -> bool {
         // Mock verification logic
-        proof.len() > 0
+        !proof.is_empty()
     }
 }
