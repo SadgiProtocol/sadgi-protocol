@@ -3,11 +3,11 @@
 sp1_zkvm::entrypoint!(main);
 
 extern crate alloc;
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
-use sha2::{Digest, Sha256};
 use sadgi_types::credential::{CredentialPayload, CredentialVerificationOutput};
+use sha2::{Digest, Sha256};
 
 /// Simple Merkle Proof verifier
 fn verify_merkle_proof(
@@ -47,18 +47,24 @@ pub fn main() {
     let mut hasher = Sha256::new();
     hasher.update(&issuer_pubkey_bytes);
     let leaf_hash: [u8; 32] = hasher.finalize().into();
-    
+
     assert!(
-        verify_merkle_proof(&trusted_issuers_root, &leaf_hash, &merkle_path, &merkle_indices),
+        verify_merkle_proof(
+            &trusted_issuers_root,
+            &leaf_hash,
+            &merkle_path,
+            &merkle_indices
+        ),
         "Issuer is not in the trusted registry"
     );
 
     // 4. Verify Ed25519 Signature over the Payload
-    let verifying_key = VerifyingKey::from_bytes(&issuer_pubkey_bytes)
-        .expect("Invalid issuer public key");
+    let verifying_key =
+        VerifyingKey::from_bytes(&issuer_pubkey_bytes).expect("Invalid issuer public key");
     let signature = Signature::from_bytes(&signature_bytes);
-    
-    verifying_key.verify(&payload_bytes, &signature)
+
+    verifying_key
+        .verify(&payload_bytes, &signature)
         .expect("Invalid cryptographic signature");
 
     // 5. Hash the payload to generate the unique credential hash
@@ -67,8 +73,8 @@ pub fn main() {
     let credential_hash: [u8; 32] = hasher.finalize().into();
 
     // 6. Deserialize payload
-    let payload: CredentialPayload = bincode::deserialize(&payload_bytes)
-        .expect("Failed to deserialize credential payload");
+    let payload: CredentialPayload =
+        bincode::deserialize(&payload_bytes).expect("Failed to deserialize credential payload");
 
     // 7. Commit Public Output
     let output = CredentialVerificationOutput {

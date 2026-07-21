@@ -2,7 +2,7 @@ use ed25519_dalek::{Signer, SigningKey};
 use rand::rngs::OsRng;
 use sadgi_types::credential::{CredentialPayload, CredentialVerificationOutput};
 use sha2::{Digest, Sha256};
-use sp1_sdk::{ProverClient, SP1Stdin, Prover};
+use sp1_sdk::{Prover, ProverClient, SP1Stdin};
 
 use std::fs;
 
@@ -18,7 +18,7 @@ async fn test_credential_verification_success() {
     let mut hasher = Sha256::new();
     hasher.update(&issuer_pubkey_bytes);
     let leaf0: [u8; 32] = hasher.finalize().into(); // Our trusted issuer
-    
+
     let leaf1 = [1u8; 32]; // Dummy issuer
     let leaf2 = [2u8; 32]; // Dummy issuer
     let leaf3 = [3u8; 32]; // Dummy issuer
@@ -58,7 +58,7 @@ async fn test_credential_verification_success() {
 
     // 5. Setup SP1 ZKVM Inputs
     let mut stdin = SP1Stdin::new();
-    
+
     // Public Inputs (Policies)
     stdin.write(&trusted_issuers_root);
 
@@ -70,14 +70,23 @@ async fn test_credential_verification_success() {
     stdin.write(&merkle_indices);
 
     // 6. Execute Program
-    let elf_path = std::path::PathBuf::from("../../prover/target/elf-compilation/riscv64im-succinct-zkvm-elf/release/credential");
-    let elf = fs::read(&elf_path).expect("Failed to read ELF. Run `cargo prove build` in prover/proofs/credential first.");
+    let elf_path = std::path::PathBuf::from(
+        "../../prover/target/elf-compilation/riscv64im-succinct-zkvm-elf/release/credential",
+    );
+    let elf = fs::read(&elf_path)
+        .expect("Failed to read ELF. Run `cargo prove build` in prover/proofs/credential first.");
     let elf_bytes: &'static [u8] = Box::leak(elf.into_boxed_slice());
-    
+
     let client = sp1_sdk::ProverClient::from_env().await;
-    let (mut public_values, execution_report) = client.execute(sp1_sdk::Elf::Static(elf_bytes), stdin).await.unwrap();
-    
-    println!("Execution completed successfully! Cycles: {}", execution_report.total_instruction_count());
+    let (mut public_values, execution_report) = client
+        .execute(sp1_sdk::Elf::Static(elf_bytes), stdin)
+        .await
+        .unwrap();
+
+    println!(
+        "Execution completed successfully! Cycles: {}",
+        execution_report.total_instruction_count()
+    );
     let output = public_values.read::<CredentialVerificationOutput>();
     println!("Public Output: {:#?}", output);
 

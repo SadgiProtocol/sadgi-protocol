@@ -149,10 +149,7 @@ impl SadgiMarketplace {
 
             env.events().publish(
                 (soroban_sdk::symbol_short!("job_fail"), job_id),
-                ProtocolEvent::JobFailed(
-                    job_id,
-                    soroban_sdk::symbol_short!("invalid"),
-                ),
+                ProtocolEvent::JobFailed(job_id, soroban_sdk::symbol_short!("invalid")),
             );
         }
     }
