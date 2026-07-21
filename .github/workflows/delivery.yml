@@ -9,14 +9,16 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
-  # Job 1: Format check
-  # Both workspaces need stable Rust that supports edition 2021/2024.
-  # We use stable: fixes zeroize edition2024 parsing.
+  # Job 1: Format & Lint
   # ─────────────────────────────────────────────────────────────────────────────
-  fmt:
-    name: Formatting
+  lint:
+    name: Formatting & Linting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,93 +26,106 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          components: rustfmt
+          toolchain: 1.81.0
+          components: rustfmt, clippy
 
-      - name: Check formatting (Contracts)
-        run: cargo fmt --all -- --check
-        
-      - name: Check formatting (Prover)
-        run: cd prover && cargo fmt --all -- --check
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Job 2: Clippy & Build (Contracts)
-  # ─────────────────────────────────────────────────────────────────────────────
-  contracts-checks:
-    name: Contracts Workspace Checks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          components: clippy
-
-      - name: Cache dependencies
+      - name: Cache Root Workspace
         uses: Swatinem/rust-cache@v2
-
-      - name: Clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
-        
-      - name: Test
-        run: cargo test --workspace
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Job 3: Clippy & Build (Prover)
-  # ─────────────────────────────────────────────────────────────────────────────
-  prover-checks:
-    name: Prover Workspace Checks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          components: clippy
-
-      - name: Cache dependencies
+          workspaces: "."
+          
+      - name: Cache Prover Workspace
         uses: Swatinem/rust-cache@v2
-        
-      - name: Install SP1 CLI & Dependencies
+        with:
+          workspaces: "prover"
+
+      - name: Check formatting
+        run: |
+          cargo fmt --all -- --check
+          cd prover && cargo fmt --all -- --check
+
+      - name: Install SP1 CLI
         run: |
           sudo apt-get update && sudo apt-get install -y protobuf-compiler
           curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
+
+      - name: Clippy (Root Workspace)
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
         
-      - name: Clippy
-        run: cd prover && cargo clippy --workspace --all-targets -- -D warnings
-        
-      - name: Test
-        run: cd prover && cargo test --workspace
+      - name: Clippy (Prover Workspace)
+        run: cd prover && cargo clippy --workspace --all-targets --locked -- -D warnings
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Job 4: Dependency Audit
-  # cargo-audit 0.22+ requires rustc >= 1.88. We use a pre-built action instead
-  # of `cargo install` to avoid the version conflict entirely.
+  # Job 2: Build & Test (Matrix)
   # ─────────────────────────────────────────────────────────────────────────────
-  audit:
-    name: Dependency Audit
+  test:
+    name: Build & Test
+    needs: lint
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: [1.81.0, stable]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cargo Audit
-        uses: rustsec/audit-check@v2
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+
+      - name: Install SP1 CLI
+        run: |
+          curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
+
+      - name: Test Root Workspace
+        run: cargo test --workspace --locked
+
+      - name: Test Prover Workspace
+        run: cd prover && cargo test --workspace --locked
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Job 5: Docker publish
+  # Job 3: Security & Dependency Audit (cargo-deny)
+  # ─────────────────────────────────────────────────────────────────────────────
+  security:
+    name: Security & Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cargo Deny
+        uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          command: check
+          arguments: --workspace
+          manifest-path: Cargo.toml
+      - name: Cargo Deny (Prover)
+        uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          command: check
+          arguments: --workspace
+          manifest-path: prover/Cargo.toml
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 4: Docker Publish
   # ─────────────────────────────────────────────────────────────────────────────
   docker-publish:
-    name: Build & Publish Prover Image
-    needs: [fmt, contracts-checks, prover-checks]
+    name: Build & Publish Images
+    needs: [test, security]
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -129,3 +144,6 @@ jobs:
           push: true
           tags: ${{ env.IMAGE }}
           target: prover
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}

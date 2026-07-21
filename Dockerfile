@@ -44,18 +44,30 @@ RUN cd prover && cargo build --release
 # ==============================================================================
 FROM debian:bullseye-slim AS prover
 
+# Standard OCI Labels
+LABEL org.opencontainers.image.title="Sadgi Prover Node" \
+      org.opencontainers.image.description="SP1-based Zero-Knowledge Prover Node for Sadgi Protocol" \
+      org.opencontainers.image.vendor="Sadgi Protocol"
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r sadgi && useradd -r -g sadgi sadgi \
+    && chown -R sadgi:sadgi /app
 
 # Copy the compiled Prover daemon from the builder
-# Since the prover is its own workspace, target is in /workspace/prover/target
 COPY --from=builder /workspace/prover/target/release/sadgi-prover-node /app/sadgi-prover-node
 
+USER sadgi
+
 EXPOSE 8080
+
+# Health check to ensure the prover API is responsive
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
 
 # Default command runs the prover node
 CMD ["/app/sadgi-prover-node", "start"]

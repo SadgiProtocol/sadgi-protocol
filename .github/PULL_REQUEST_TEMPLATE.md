@@ -1,17 +1,23 @@
 ## Description
-Briefly describe what this PR accomplishes. If it fixes an issue, include "Fixes #<ISSUE_ID>".
+<!-- Describe your changes in detail -->
+
+## Related Issues
+<!-- Link to the related issue: Fixes #123 -->
 
 ## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] SIP (Sadgi Improvement Proposal)
+<!-- Check the appropriate boxes -->
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Infrastructure/CI change
 - [ ] Documentation update
 
-## Checklist
-- [ ] I have run `make format` and `make lint` locally.
-- [ ] I have added tests that prove my fix is effective or that my feature works.
-- [ ] I have updated `ARCHITECTURE.md` or `WHITEPAPER.md` if applicable.
+## Verification
+<!-- Describe how you verified your changes -->
+- [ ] `cargo check --workspace` passes locally
+- [ ] `cargo test --workspace` passes locally
+- [ ] `cargo clippy` and `cargo fmt` pass without errors
+- [ ] Next.js dashboard builds successfully
 
-## Additional Context
-Add any other context, screenshots, or metrics about the PR here.
+## Screenshots (if UI change)
+<!-- Add screenshots here if applicable -->

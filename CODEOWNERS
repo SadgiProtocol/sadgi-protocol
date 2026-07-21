@@ -1,0 +1,20 @@
+# Sadgi Protocol CODEOWNERS
+# This file dictates who must review PRs touching specific parts of the codebase.
+
+# Default fallback
+*       @sadgi-core
+
+# Rust Smart Contracts
+/contracts/ @sadgi-contracts
+
+# SP1 Prover & Circuits
+/prover/    @sadgi-zkp
+
+# Frontend & Dashboard
+/dashboard/ @sadgi-frontend
+
+# DevOps, CI/CD, and Infrastructure
+/.github/   @sadgi-devops
+/scripts/   @sadgi-devops
+/Dockerfile @sadgi-devops
+/Makefile   @sadgi-devops
