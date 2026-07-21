@@ -44,7 +44,7 @@ pub fn main() {
 
     // 3. Verify Merkle Proof (Authenticate the Issuer)
     let mut hasher = Sha256::new();
-    hasher.update(&issuer_pubkey_bytes);
+    hasher.update(issuer_pubkey_bytes);
     let leaf_hash: [u8; 32] = hasher.finalize().into();
 
     assert!(

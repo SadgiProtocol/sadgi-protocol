@@ -3,7 +3,6 @@
 sp1_zkvm::entrypoint!(main);
 
 extern crate alloc;
-use alloc::string::String;
 use alloc::vec::Vec;
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use sadgi_types::credential::{CredentialPayload, CredentialVerificationOutput};
@@ -45,7 +44,7 @@ pub fn main() {
 
     // 3. Verify Merkle Proof (Authenticate the Issuer)
     let mut hasher = Sha256::new();
-    hasher.update(&issuer_pubkey_bytes);
+    hasher.update(issuer_pubkey_bytes);
     let leaf_hash: [u8; 32] = hasher.finalize().into();
 
     assert!(
