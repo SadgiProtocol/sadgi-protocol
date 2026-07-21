@@ -29,7 +29,9 @@ fn test_e2e_job_lifecycle() {
     let program_id = BytesN::from_array(&env, &[7; 32]);
     let vk = Bytes::from_slice(&env, &[1, 2, 3]); // Mock VK
     let metadata = String::from_str(&env, "E2E Test Program");
-    registry_client.register(&program_id, &vk, &1, &metadata);
+
+    // We'll just have the developer register it for this test
+    registry_client.register(&developer, &program_id, &vk, &1, &metadata);
 
     // 4. Developer Creates Job
     let bounty = 500i128;
