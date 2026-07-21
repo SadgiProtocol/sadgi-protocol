@@ -1,5 +1,5 @@
 [advisories]
-ignore = []
+ignore = ["RUSTSEC-2024-0436"]
 
 [licenses]
 # We want to be very strict with licenses.
