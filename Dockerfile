@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     libdbus-1-dev \
+    libudev-dev \
     curl \
     git \
     clang \
