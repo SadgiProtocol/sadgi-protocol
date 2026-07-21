@@ -1,9 +1,7 @@
 [advisories]
-vulnerability = "deny"
 ignore = []
 
 [licenses]
-unlicensed = "deny"
 # We want to be very strict with licenses.
 allow = [
     "MIT",
@@ -15,8 +13,6 @@ allow = [
     "Zlib",
     "Unicode-DFS-2016",
 ]
-copyleft = "warn"
-allow-osi-fsf-free = "neither"
 confidence-threshold = 0.8
 exceptions = []
 
