@@ -30,4 +30,4 @@ Thumbs.db
 soroban-data/
 scratch/
 target/
-**/target/
+**/target/.vs/

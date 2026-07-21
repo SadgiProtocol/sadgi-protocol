@@ -4,7 +4,7 @@ use sadgi_types::credential::{CredentialPayload, CredentialVerificationOutput};
 use sha2::{Digest, Sha256};
 use sp1_sdk::{Prover, SP1Stdin};
 
-use std::fs;
+// removed std::fs
 
 #[tokio::test]
 async fn test_credential_verification_success() {
@@ -79,7 +79,7 @@ async fn test_credential_verification_success() {
     let elf_bytes: &'static [u8] = Box::leak(elf.into_boxed_slice());
 
     let client = sp1_sdk::ProverClient::from_env().await;
-    let (mut public_values, execution_report) = client
+    let (mut public_values, _execution_report) = client
         .execute(sp1_sdk::Elf::Static(elf_bytes), stdin)
         .await
         .unwrap();

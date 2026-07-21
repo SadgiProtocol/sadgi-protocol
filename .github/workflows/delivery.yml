@@ -82,7 +82,7 @@ jobs:
         run: cargo test --workspace --locked
 
       - name: Test Prover Workspace
-        run: cd prover && cargo test --workspace --locked
+        run: cd prover && cargo test --workspace --locked --release
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 3: Security & Dependency Audit (cargo-deny)
