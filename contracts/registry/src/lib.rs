@@ -59,6 +59,33 @@ impl ProgramRegistry {
         Ok(())
     }
 
+    /// Sets the Trusted Issuers Merkle Root for Verifiable Credentials
+    pub fn set_issuers_root(env: Env, admin: Address, root: BytesN<32>) {
+        admin.require_auth();
+        // Basic DAO/Admin auth check could go here
+        let key = soroban_sdk::symbol_short!("issr_root");
+        env.storage().persistent().set(&key, &root);
+    }
+
+    pub fn get_issuers_root(env: Env) -> Option<BytesN<32>> {
+        let key = soroban_sdk::symbol_short!("issr_root");
+        env.storage().persistent().get(&key)
+    }
+
+    /// Revoke a credential by hash (O(1) storage lookup)
+    pub fn revoke_credential(env: Env, admin: Address, credential_hash: BytesN<32>) {
+        admin.require_auth();
+        // In a real system, the issuer would revoke this. For simplicity, admin does it.
+        env.storage().persistent().set(&credential_hash, &true);
+    }
+
+    pub fn is_revoked(env: Env, credential_hash: BytesN<32>) -> bool {
+        env.storage()
+            .persistent()
+            .get(&credential_hash)
+            .unwrap_or(false)
+    }
+
     /// Retrieves the verification key and version for a given program.
     pub fn get_program(env: Env, program_id: BytesN<32>) -> Option<ProgramRecord> {
         env.storage().persistent().get(&program_id)
