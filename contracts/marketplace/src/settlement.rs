@@ -1,4 +1,4 @@
-use crate::scheduler::{Scheduler};
+use crate::scheduler::Scheduler;
 use soroban_sdk::{Address, Env};
 
 pub struct Settlement;
