@@ -115,7 +115,7 @@ mod test {
         let contract_id = env.register_contract(None, ProgramRegistry);
         let client = ProgramRegistryClient::new(&env, &contract_id);
 
-        let author = soroban_sdk::testutils::Address::generate(&env);
+        let author = soroban_sdk::Address::generate(&env);
         let program_id = BytesN::from_array(&env, &[1; 32]);
         let vk = Bytes::from_slice(&env, &[2, 3, 4]);
         let metadata = String::from_str(&env, "test program");
