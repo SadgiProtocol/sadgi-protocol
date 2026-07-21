@@ -30,11 +30,7 @@ impl Settlement {
         // Disburse to Prover
         token.transfer(&contract_addr, &prover, &prover_reward);
         // Disburse to Treasury
-        token.transfer(
-            &contract_addr,
-            &treasury_addr,
-            &treasury_fee,
-        );
+        token.transfer(&contract_addr, &treasury_addr, &treasury_fee);
 
         // Increment Reputation for success
         if let Some(mut profile) = Scheduler::get_prover(env, &prover) {
