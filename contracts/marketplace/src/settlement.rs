@@ -1,5 +1,5 @@
 use crate::scheduler::Scheduler;
-use soroban_sdk::{Address, Env};
+use soroban_sdk::{symbol_short, token, Address, Env};
 
 pub struct Settlement;
 
@@ -8,11 +8,32 @@ impl Settlement {
     /// Uses dynamic pricing: % to Prover, % to Treasury (Governance).
     pub fn release_funds(env: &Env, prover: Address, bounty: i128, fee_percent: u32) {
         let treasury_fee = (bounty * (fee_percent as i128)) / 100;
-        let _prover_reward = bounty - treasury_fee;
+        let prover_reward = bounty - treasury_fee;
 
-        // In a real contract, we would use token::Client to transfer XLM.
-        // token::Client::new(env, &xlm_address).transfer(&env.current_contract_address(), &prover, &prover_reward);
-        // token::Client::new(env, &xlm_address).transfer(&env.current_contract_address(), &treasury_address, &treasury_fee);
+        let key_token = symbol_short!("token_addr");
+        let key_treasury = symbol_short!("treasury");
+
+        let token_addr: Address = env
+            .storage()
+            .persistent()
+            .get(&key_token)
+            .expect("Marketplace not initialized");
+        let treasury_addr: Address = env
+            .storage()
+            .persistent()
+            .get(&key_treasury)
+            .expect("Marketplace not initialized");
+
+        let token = token::Client::new(env, &token_addr);
+
+        // Disburse to Prover
+        token.transfer(&env.current_contract_address(), &prover, &prover_reward);
+        // Disburse to Treasury
+        token.transfer(
+            &env.current_contract_address(),
+            &treasury_addr,
+            &treasury_fee,
+        );
 
         // Increment Reputation for success
         if let Some(mut profile) = Scheduler::get_prover(env, &prover) {
@@ -39,7 +60,24 @@ impl Settlement {
                 let slash_amount = profile.staked_xlm / 2;
                 profile.staked_xlm -= slash_amount;
 
-                // Route slash_amount to Treasury / Developer Compensation
+                let key_token = symbol_short!("token_addr");
+                let key_treasury = symbol_short!("treasury");
+
+                let token_addr: Address = env
+                    .storage()
+                    .persistent()
+                    .get(&key_token)
+                    .expect("Marketplace not initialized");
+                let treasury_addr: Address = env
+                    .storage()
+                    .persistent()
+                    .get(&key_treasury)
+                    .expect("Marketplace not initialized");
+
+                let token = token::Client::new(env, &token_addr);
+
+                // Transfer slash amount from Prover's stake to Treasury
+                token.transfer(&prover, &treasury_addr, &slash_amount);
             } else {
                 // Timeout/Hardware Crash: Warning and reputation hit
                 if profile.reputation_score > 10 {
