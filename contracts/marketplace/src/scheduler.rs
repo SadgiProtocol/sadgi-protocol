@@ -20,6 +20,13 @@ pub struct ProverProfile {
     pub is_suspended: bool,
 }
 
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Prover(Address),
+    ProverList,
+}
+
 pub struct Scheduler;
 
 impl Scheduler {
@@ -32,61 +39,56 @@ impl Scheduler {
     }
 
     pub fn register_prover(env: &Env, profile: ProverProfile) {
-        let key = soroban_sdk::symbol_short!("provers");
-        let mut provers: soroban_sdk::Vec<ProverProfile> = env
+        // Store the profile using O(1) indexed key
+        env.storage()
+            .persistent()
+            .set(&DataKey::Prover(profile.prover_address.clone()), &profile);
+
+        // Add address to the iterable list if not present
+        let mut prover_list: soroban_sdk::Vec<Address> = env
             .storage()
             .persistent()
-            .get(&key)
+            .get(&DataKey::ProverList)
             .unwrap_or_else(|| soroban_sdk::Vec::new(env));
 
-        provers.push_back(profile);
-        env.storage().persistent().set(&key, &provers);
+        if !prover_list.contains(&profile.prover_address) {
+            prover_list.push_back(profile.prover_address.clone());
+            env.storage()
+                .persistent()
+                .set(&DataKey::ProverList, &prover_list);
+        }
     }
 
     pub fn get_prover(env: &Env, prover_address: &Address) -> Option<ProverProfile> {
-        let key = soroban_sdk::symbol_short!("provers");
-        let provers: soroban_sdk::Vec<ProverProfile> = env.storage().persistent().get(&key)?;
-
-        for p in provers.iter() {
-            if p.prover_address == *prover_address {
-                return Some(p);
-            }
-        }
-        None
+        env.storage()
+            .persistent()
+            .get(&DataKey::Prover(prover_address.clone()))
     }
 
     pub fn update_prover(env: &Env, prover_address: &Address, updated_profile: ProverProfile) {
-        let key = soroban_sdk::symbol_short!("provers");
-        let mut provers: soroban_sdk::Vec<ProverProfile> =
-            env.storage().persistent().get(&key).unwrap();
-
-        for (i, p) in provers.iter().enumerate() {
-            if p.prover_address == *prover_address {
-                provers.set(i as u32, updated_profile);
-                break;
-            }
-        }
-
-        env.storage().persistent().set(&key, &provers);
+        // O(1) update
+        env.storage()
+            .persistent()
+            .set(&DataKey::Prover(prover_address.clone()), &updated_profile);
     }
 
     /// Select the best Provers based on capacity, reputation, and class.
     pub fn assign_job(env: &Env, required_redundancy: u32) -> soroban_sdk::Vec<Address> {
-        // Mocking assignment logic: select first N available provers not suspended
-        let key = soroban_sdk::symbol_short!("provers");
-        let provers: soroban_sdk::Vec<ProverProfile> = env
+        let prover_list: soroban_sdk::Vec<Address> = env
             .storage()
             .persistent()
-            .get(&key)
+            .get(&DataKey::ProverList)
             .unwrap_or_else(|| soroban_sdk::Vec::new(env));
 
         let mut assigned = soroban_sdk::Vec::new(env);
 
-        for p in provers.iter() {
-            if !p.is_suspended && p.active_jobs < p.max_concurrency {
-                assigned.push_back(p.prover_address);
-                if assigned.len() == required_redundancy {
-                    break;
+        for addr in prover_list.iter() {
+            if let Some(p) = Self::get_prover(env, &addr) {
+                if !p.is_suspended && p.active_jobs < p.max_concurrency {
+                    assigned.push_back(p.prover_address);
+                    if assigned.len() == required_redundancy {
+                        break;
+                    }
                 }
             }
         }

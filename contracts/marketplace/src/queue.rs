@@ -42,45 +42,29 @@ pub struct JobRequest {
     pub assigned_provers: soroban_sdk::Vec<Address>,
 }
 
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Job(u64),
+}
+
 pub struct Queue;
 
 impl Queue {
     pub fn push(env: &Env, request: JobRequest) {
-        let key = soroban_sdk::symbol_short!("queue");
-        let mut queue: soroban_sdk::Vec<JobRequest> = env
-            .storage()
+        env.storage()
             .persistent()
-            .get(&key)
-            .unwrap_or_else(|| soroban_sdk::Vec::new(env));
-
-        queue.push_back(request);
-        env.storage().persistent().set(&key, &queue);
+            .set(&DataKey::Job(request.job_id), &request);
     }
 
     pub fn get_job(env: &Env, job_id: u64) -> Option<JobRequest> {
-        let key = soroban_sdk::symbol_short!("queue");
-        let queue: soroban_sdk::Vec<JobRequest> = env.storage().persistent().get(&key)?;
-
-        for job in queue.iter() {
-            if job.job_id == job_id {
-                return Some(job);
-            }
-        }
-        None
+        env.storage().persistent().get(&DataKey::Job(job_id))
     }
 
     pub fn update_job_state(env: &Env, job_id: u64, new_state: JobState) {
-        let key = soroban_sdk::symbol_short!("queue");
-        let mut queue: soroban_sdk::Vec<JobRequest> = env.storage().persistent().get(&key).unwrap();
-
-        for (i, mut job) in queue.iter().enumerate() {
-            if job.job_id == job_id {
-                job.state = new_state.clone();
-                queue.set(i as u32, job);
-                break;
-            }
+        if let Some(mut job) = Self::get_job(env, job_id) {
+            job.state = new_state;
+            env.storage().persistent().set(&DataKey::Job(job_id), &job);
         }
-
-        env.storage().persistent().set(&key, &queue);
     }
 }
