@@ -1,4 +1,3 @@
-#![no_std]
 
 use sadgi_types::receipt::ProofReceipt;
 use soroban_sdk::{contractclient, Address, Env};

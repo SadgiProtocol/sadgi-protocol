@@ -4,7 +4,7 @@
 use super::*;
 use sadgi_registry::{ProgramRegistry, ProgramRegistryClient};
 use sadgi_verifier::{Groth16Verifier, Groth16VerifierClient};
-use soroban_sdk::{symbol_short, testutils::Address as _, Bytes, BytesN, Env, String};
+use soroban_sdk::{testutils::Address as _, Bytes, BytesN, Env, String};
 
 #[test]
 fn test_e2e_job_lifecycle() {

@@ -8,7 +8,7 @@ pub mod settlement;
 
 use sadgi_types::events::ProtocolEvent;
 use sadgi_types::receipt::ProofReceipt;
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Bytes, BytesN, Env, IntoVal};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Bytes, Env, IntoVal};
 
 #[contract]
 pub struct SadgiMarketplace;
