@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libdbus-1-dev \
     libudev-dev \
+    protobuf-compiler \
     curl \
     git \
     clang \

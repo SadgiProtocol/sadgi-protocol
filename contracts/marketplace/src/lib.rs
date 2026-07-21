@@ -61,12 +61,12 @@ impl SadgiMarketplace {
 
         env.events().publish(
             (soroban_sdk::symbol_short!("job_new"), job_id),
-            ProtocolEvent::JobCreated {
+            ProtocolEvent::JobCreated(
                 job_id,
                 developer,
-                program_id: soroban_sdk::BytesN::from_array(&env, &[0; 32]),
+                soroban_sdk::BytesN::from_array(&env, &[0; 32]),
                 bounty,
-            },
+            ),
         );
 
         job_id
@@ -141,7 +141,7 @@ impl SadgiMarketplace {
 
             env.events().publish(
                 (soroban_sdk::symbol_short!("job_done"), job_id),
-                ProtocolEvent::ProofVerified { job_id },
+                ProtocolEvent::ProofVerified(job_id),
             );
         } else {
             // Cryptographic Fraud detected. Maximum Penalty!
@@ -149,10 +149,10 @@ impl SadgiMarketplace {
 
             env.events().publish(
                 (soroban_sdk::symbol_short!("job_fail"), job_id),
-                ProtocolEvent::JobFailed {
+                ProtocolEvent::JobFailed(
                     job_id,
-                    reason: soroban_sdk::symbol_short!("invalid"),
-                },
+                    soroban_sdk::symbol_short!("invalid"),
+                ),
             );
         }
     }

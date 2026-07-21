@@ -2,50 +2,82 @@
 #![allow(dead_code)]
 sp1_zkvm::entrypoint!(main);
 
-use serde::Deserialize;
+extern crate alloc;
+use alloc::vec::Vec;
+use alloc::string::String;
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use sha2::{Digest, Sha256};
+use sadgi_types::credential::{CredentialPayload, CredentialVerificationOutput};
 
-#[derive(Deserialize, Debug)]
-struct CredentialSubject {
-    pub id: String,
-    pub age: u8,
-    pub kyc_status: String,
-}
-
-#[derive(Deserialize, Debug)]
-struct W3CCredential {
-    pub issuer: String,
-    #[serde(rename = "credentialSubject")]
-    pub credential_subject: CredentialSubject,
+/// Simple Merkle Proof verifier
+fn verify_merkle_proof(
+    root: &[u8; 32],
+    leaf: &[u8; 32],
+    path: &[[u8; 32]],
+    indices: &[bool],
+) -> bool {
+    let mut current_hash = *leaf;
+    for (i, sibling) in path.iter().enumerate() {
+        let mut hasher = Sha256::new();
+        if indices[i] {
+            hasher.update(sibling);
+            hasher.update(current_hash);
+        } else {
+            hasher.update(current_hash);
+            hasher.update(sibling);
+        }
+        current_hash.copy_from_slice(&hasher.finalize());
+    }
+    &current_hash == root
 }
 
 pub fn main() {
-    // 1. Read caller contract ID (Public Input)
-    let caller_contract_id = sp1_zkvm::io::read::<[u8; 32]>();
+    // 1. Read Public Inputs (Policies)
+    let trusted_issuers_root = sp1_zkvm::io::read::<[u8; 32]>();
 
-    // We commit the caller contract ID so the Verifier knows this proof is bound to the exact marketplace request.
-    sp1_zkvm::io::commit(&caller_contract_id);
+    // 2. Read Private Inputs (Witnesses)
+    let payload_bytes = sp1_zkvm::io::read::<Vec<u8>>();
+    let signature_vec = sp1_zkvm::io::read::<Vec<u8>>();
+    let signature_bytes: [u8; 64] = signature_vec.try_into().expect("Invalid signature length");
+    let issuer_pubkey_bytes = sp1_zkvm::io::read::<[u8; 32]>();
+    let merkle_path = sp1_zkvm::io::read::<Vec<[u8; 32]>>();
+    let merkle_indices = sp1_zkvm::io::read::<Vec<bool>>();
 
-    // 2. Read W3C VC payload (Private Input - Prover only)
-    let vc_json = sp1_zkvm::io::read::<String>();
-
-    // 3. Parse JSON
-    let vc: W3CCredential = serde_json::from_str(&vc_json).expect("Failed to parse W3C VC JSON");
-
-    // 4. Cryptographic Verification Mock (Ensure the issuer is our trusted KYC provider)
-    assert_eq!(vc.issuer, "did:sadgi:kyc-provider-1", "Untrusted VC Issuer");
-
-    // 5. Business Logic: Assert age > 18 without revealing the actual age
-    assert!(vc.credential_subject.age >= 18, "User is under 18");
-
-    // 6. Business Logic: Assert KYC is verified
-    assert_eq!(
-        vc.credential_subject.kyc_status, "verified",
-        "KYC status not verified"
+    // 3. Verify Merkle Proof (Authenticate the Issuer)
+    let mut hasher = Sha256::new();
+    hasher.update(&issuer_pubkey_bytes);
+    let leaf_hash: [u8; 32] = hasher.finalize().into();
+    
+    assert!(
+        verify_merkle_proof(&trusted_issuers_root, &leaf_hash, &merkle_path, &merkle_indices),
+        "Issuer is not in the trusted registry"
     );
 
-    // 7. Commit success (Public Output)
-    // By only outputting `true`, the network knows the user is >18 and KYC'd,
-    // but their actual age and DID ID remain completely hidden in the ZK proof.
-    let success = true;
-    sp1_zkvm::io::commit(&success);
+    // 4. Verify Ed25519 Signature over the Payload
+    let verifying_key = VerifyingKey::from_bytes(&issuer_pubkey_bytes)
+        .expect("Invalid issuer public key");
+    let signature = Signature::from_bytes(&signature_bytes);
+    
+    verifying_key.verify(&payload_bytes, &signature)
+        .expect("Invalid cryptographic signature");
+
+    // 5. Hash the payload to generate the unique credential hash
+    let mut hasher = Sha256::new();
+    hasher.update(&payload_bytes);
+    let credential_hash: [u8; 32] = hasher.finalize().into();
+
+    // 6. Deserialize payload
+    let payload: CredentialPayload = bincode::deserialize(&payload_bytes)
+        .expect("Failed to deserialize credential payload");
+
+    // 7. Commit Public Output
+    let output = CredentialVerificationOutput {
+        trusted_issuers_root,
+        credential_hash,
+        subject_id: payload.subject_id,
+        age: payload.age,
+        status: payload.status,
+        expiration: payload.expiration,
+    };
+    sp1_zkvm::io::commit(&output);
 }

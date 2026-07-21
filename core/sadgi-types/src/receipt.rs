@@ -21,7 +21,7 @@ pub struct ProofReceipt {
 }
 
 impl ProofReceipt {
-    pub fn verify(&self, env: &Env) -> bool {
+    pub fn verify(&self, _env: &Env) -> bool {
         // Verification logic is now delegated to the Verifier contract via cross-contract calls.
         true
     }

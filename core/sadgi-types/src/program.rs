@@ -1,4 +1,4 @@
-#![no_std]
+// No std for soroban
 
 use soroban_sdk::{contracttype, Bytes, BytesN, Symbol};
 
