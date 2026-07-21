@@ -5,6 +5,7 @@ src = "src"
 title = "Sadgi Protocol Documentation"
 
 [output.html]
+site-url = "/sadgi-protocol/"
 git-repository-url = "https://github.com/SadgiProtocol/sadgi-protocol"
 edit-url-template = "https://github.com/SadgiProtocol/sadgi-protocol/edit/main/docs/{path}"
 mathjax-support = true

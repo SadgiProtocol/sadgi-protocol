@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import { isAllowed, setAllowed, getUserInfo, signTransaction } from "@stellar/freighter-api";
 import { rpc, TransactionBuilder, Networks, SorobanRpc } from "@stellar/stellar-sdk";
 
-// Ensure this matches your local or testnet config
-const RPC_URL = "http://localhost:8000/soroban/rpc";
-const NETWORK_PASSPHRASE = Networks.STANDALONE; // Or TESTNET
+// Stellar Testnet configuration
+const RPC_URL = "https://soroban-testnet.stellar.org";
+const NETWORK_PASSPHRASE = Networks.TESTNET;
 const MARKETPLACE_ID = "CC_MOCK_MARKETPLACE_ID_REPLACE_ME";
 
 type JobState = "Request" | "Queue" | "Assigned" | "Executing" | "Submitted" | "Verified" | "Settled" | "Failed";
