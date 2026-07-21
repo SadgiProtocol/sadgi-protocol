@@ -3,8 +3,6 @@ mod executor;
 mod runner;
 mod scheduler;
 
-
-
 #[tokio::main]
 async fn main() {
     println!("Starting Sadgi Prover Node...");

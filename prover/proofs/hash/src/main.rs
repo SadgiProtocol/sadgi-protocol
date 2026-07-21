@@ -10,7 +10,7 @@ pub fn main() {
     let pre_image = sp1_zkvm::io::read::<Vec<u8>>();
 
     // 3. Hash the pre-image using actual SHA-256 (hardware accelerated by SP1)
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
     hasher.update(&pre_image);
     let result = hasher.finalize();
