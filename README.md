@@ -1,4 +1,9 @@
-# Sadgi Protocol
+<div align="center">
+  <img src="brand/logo-full-white.png" alt="Sadgi Protocol" height="120" />
+</div>
+
+<br/>
+
 **The Verifiable Compute Protocol for Stellar**
 
 Sadgi enables developers to execute private, computationally intensive workloads off-chain while settling mathematically guaranteed proofs directly on the Stellar blockchain.

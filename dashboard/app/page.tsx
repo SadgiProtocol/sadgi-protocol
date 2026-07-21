@@ -162,8 +162,7 @@ export default function Dashboard() {
       {/* Header */}
       <header className="header-nav">
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Terminal size={20} color="var(--text-primary)" />
-          <h1 style={{ fontSize: "16px", fontWeight: "600", letterSpacing: "1px" }}>SADGI // PLATFORM</h1>
+          <img src="/logo-full-white.png" alt="Sadgi Logo" style={{ height: "24px" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           <div className="status-indicator">
