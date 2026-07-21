@@ -12,6 +12,8 @@ env:
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 1: Format check
+  # Both workspaces need stable Rust that supports edition 2021.
+  # We use 1.81.0: supports edition 2021, fixes zeroize, older than 1.85 (edition 2024).
   # ─────────────────────────────────────────────────────────────────────────────
   fmt:
     name: Formatting
@@ -19,10 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust 1.79.0
+      - name: Install Rust 1.81.0
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.79.0
+          toolchain: 1.81.0
           components: rustfmt
 
       - name: Check formatting (Contracts)
@@ -40,10 +42,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust 1.79.0
+      - name: Install Rust 1.81.0
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.79.0
+          toolchain: 1.81.0
           components: clippy
 
       - name: Cache dependencies
@@ -64,10 +66,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust 1.79.0
+      - name: Install Rust 1.81.0
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.79.0
+          toolchain: 1.81.0
           components: clippy
 
       - name: Cache dependencies
@@ -86,6 +88,8 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 4: Dependency Audit
+  # cargo-audit 0.22+ requires rustc >= 1.88. We use a pre-built action instead
+  # of `cargo install` to avoid the version conflict entirely.
   # ─────────────────────────────────────────────────────────────────────────────
   audit:
     name: Dependency Audit
@@ -93,15 +97,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust 1.79.0
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.79.0
-
       - name: Cargo Audit
-        run: |
-          cargo install cargo-audit --locked
-          cargo audit --file audit.toml
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 5: Docker publish
