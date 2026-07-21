@@ -64,8 +64,8 @@ You can view your job flowing through the Compute Marketplace by visiting `http:
 ## 📚 Documentation
 For deep dives, tutorials, and protocol standards, visit our [Official Documentation](https://sadgiprotocol.github.io/sadgi-protocol/).
 - [The Whitepaper](https://sadgiprotocol.github.io/sadgi-protocol/whitepaper.html)
-- [Architecture & Threat Models](https://sadgiprotocol.github.io/sadgi-protocol/architecture.html)
-- [SDK Reference](https://sadgiprotocol.github.io/sadgi-protocol/sdk.html)
+- [Architecture & Threat Models](https://sadgiprotocol.github.io/sadgi-protocol/architecture/security.html)
+- [SDK Reference](https://sadgiprotocol.github.io/sadgi-protocol/architecture/sdk.html)
 
 ---
 
