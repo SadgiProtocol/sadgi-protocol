@@ -13,7 +13,7 @@ fn test_e2e_job_lifecycle() {
 
     // 1. Setup Identities
     let developer = soroban_sdk::Address::generate(&env);
-    let prover = soroban_sdk::Address::generate(&env);
+    let _prover = soroban_sdk::Address::generate(&env);
 
     // 2. Deploy Infrastructure
     let registry_id = env.register_contract(None, ProgramRegistry);

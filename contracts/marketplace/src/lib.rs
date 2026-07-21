@@ -18,7 +18,7 @@ impl SadgiMarketplace {
     /// Initialize the marketplace with a designated payment token and treasury address.
     pub fn initialize(env: Env, admin: Address, token: Address, treasury: Address) {
         admin.require_auth();
-        let key_token = symbol_short!("token_addr");
+        let key_token = symbol_short!("token_adr");
         let key_treasury = symbol_short!("treasury");
 
         if env.storage().persistent().has(&key_token) {

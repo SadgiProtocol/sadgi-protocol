@@ -10,7 +10,7 @@ impl Settlement {
         let treasury_fee = (bounty * (fee_percent as i128)) / 100;
         let prover_reward = bounty - treasury_fee;
 
-        let key_token = symbol_short!("token_addr");
+        let key_token = symbol_short!("token_adr");
         let key_treasury = symbol_short!("treasury");
 
         let token_addr: Address = env
