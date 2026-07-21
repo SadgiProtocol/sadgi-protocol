@@ -14,9 +14,7 @@ impl SP1ProverBackend {
         let secret = [1u8; 32];
         let oracle_key = SigningKey::from_bytes(&secret);
 
-        Self {
-            oracle_key,
-        }
+        Self { oracle_key }
     }
 
     /// Fetches the ELF binary from the local workspace target directory.
