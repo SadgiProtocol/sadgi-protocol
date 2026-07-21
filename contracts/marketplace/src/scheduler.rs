@@ -1,3 +1,4 @@
+#![allow(clippy::manual_find)]
 use soroban_sdk::{contracttype, Address, Env};
 
 #[contracttype]

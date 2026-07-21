@@ -8,7 +8,7 @@ impl Settlement {
     /// Uses dynamic pricing: % to Prover, % to Treasury (Governance).
     pub fn release_funds(env: &Env, prover: Address, bounty: i128, fee_percent: u32) {
         let treasury_fee = (bounty * (fee_percent as i128)) / 100;
-        let prover_reward = bounty - treasury_fee;
+        let _prover_reward = bounty - treasury_fee;
 
         // In a real contract, we would use token::Client to transfer XLM.
         // token::Client::new(env, &xlm_address).transfer(&env.current_contract_address(), &prover, &prover_reward);
