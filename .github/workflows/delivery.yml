@@ -74,8 +74,9 @@ jobs:
         with:
           workspaces: "."
 
-      - name: Install SP1 CLI
+      - name: Install SP1 CLI & Dependencies
         run: |
+          sudo apt-get update && sudo apt-get install -y protobuf-compiler
           curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
 
       - name: Test Root Workspace
