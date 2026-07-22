@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Soroban dependencies
-RUN rustup target add wasm32-unknown-unknown
+RUN rustup target add wasm32v1-none
 RUN cargo install --locked soroban-cli
 
 # Install SP1 toolchain
@@ -36,7 +36,7 @@ COPY cli/ cli/
 COPY prover/ prover/
 
 # Build Soroban Contracts
-RUN cargo build --manifest-path contracts/marketplace/Cargo.toml --target wasm32-unknown-unknown --release
+RUN cargo build --manifest-path contracts/marketplace/Cargo.toml --target wasm32v1-none --release
 
 # Build SP1 Programs and Prover Daemon
 # The prover is now in its own isolated workspace
