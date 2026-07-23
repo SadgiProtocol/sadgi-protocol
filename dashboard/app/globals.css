@@ -106,6 +106,7 @@ body {
   font-weight: 500;
 }
 
+
 .status-dot {
   width: 6px;
   height: 6px;
@@ -168,4 +169,63 @@ body {
   letter-spacing: 0.5px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ==========================================================================
+   Marquee Styles
+   ========================================================================== */
+
+.marquee-container {
+  width: 100%;
+  overflow: hidden;
+  padding: 3rem 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+  margin: 2rem 0 4rem 0;
+  display: flex;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: scroll 30s linear infinite;
+  align-items: center;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.marquee-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4rem;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  filter: grayscale(100%);
+}
+
+.marquee-item:hover {
+  opacity: 1;
+  filter: grayscale(0%);
+}
+
+.marquee-logo {
+  height: 50px;
+  object-fit: contain;
+}
+
+.marquee-text {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
 }
