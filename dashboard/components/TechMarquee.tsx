@@ -15,7 +15,7 @@ export default function TechMarquee() {
           <div key={i} className="marquee-item">
             {tech.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={tech.logo} alt={tech.name} className="marquee-logo" />
+              <img src={tech.logo} alt={tech.name} className="marquee-logo" style={{ transform: "scale(5)" }} />
             ) : (
               <span className="marquee-text">{tech.name}</span>
             )}
