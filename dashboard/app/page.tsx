@@ -64,7 +64,7 @@ export default function LandingPage() {
               <Link href="/marketplace" className="btn-primary" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", fontSize: "15px" }}>
                 Launch Marketplace <ArrowRight size={16} />
               </Link>
-              <a href="https://sadgiprotocol.github.io/sadgi-protocol/" className="btn-secondary" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", fontSize: "15px" }}>
+              <a href="https://sadgiprotocol.github.io/sadgi-protocol/docs/" className="btn-secondary" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", fontSize: "15px" }}>
                 Read the Docs
               </a>
             </div>

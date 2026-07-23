@@ -51,18 +51,18 @@ jobs:
           NODE_ENV: production
         # Output: dashboard/out/
 
-      # ── 3. Combine: docs at root, dashboard at /app ─────────────────────────
+      # ── 3. Combine: dashboard at root, docs at /docs ────────────────────────
       - name: Combine into single artifact
         run: |
-          # Copy dashboard static export into docs/book/app/
-          mkdir -p docs/book/app
-          cp -r dashboard/out/. docs/book/app/
+          # Copy docs build into dashboard/out/docs/
+          mkdir -p dashboard/out/docs
+          cp -r docs/book/. dashboard/out/docs/
 
-          # Prevent GitHub Jekyll processing (critical for mdBook assets)
-          touch docs/book/.nojekyll
+          # Prevent GitHub Jekyll processing (critical for mdBook and Next.js assets)
+          touch dashboard/out/.nojekyll
 
           echo "=== Final site structure ==="
-          find docs/book -maxdepth 2 -type d
+          find dashboard/out -maxdepth 2 -type d
 
       # ── 4. Upload & Deploy ──────────────────────────────────────────────────
       - name: Setup Pages
@@ -71,7 +71,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs/book'
+          path: 'dashboard/out'
 
   deploy:
     name: Deploy to GitHub Pages
