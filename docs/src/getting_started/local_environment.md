@@ -22,7 +22,7 @@ cd sadgi-core
 ## 2. Install Rust Components
 
 ```bash
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 cargo install --locked stellar-cli
 # Install SP1 toolchain
 curl -L https://sp1.succinct.xyz | bash
@@ -54,9 +54,9 @@ cp .env.example .env
 cd contracts
 make build
 # Produces:
-#   target/wasm32-unknown-unknown/release/registry.wasm
-#   target/wasm32-unknown-unknown/release/verifier.wasm
-#   target/wasm32-unknown-unknown/release/marketplace.wasm
+#   target/wasm32v1-none/release/registry.wasm
+#   target/wasm32v1-none/release/verifier.wasm
+#   target/wasm32v1-none/release/marketplace.wasm
 ```
 
 ## 5. Deploy Contracts to Testnet

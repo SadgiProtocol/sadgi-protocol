@@ -34,7 +34,7 @@ build: contracts-build prover-build sdk-build cli-build
 
 ## contracts-build: Compile Soroban smart contracts to WebAssembly
 contracts-build:
-	cargo build --manifest-path contracts/marketplace/Cargo.toml --target wasm32-unknown-unknown --profile $(PROFILE) --locked
+	cargo build --manifest-path contracts/marketplace/Cargo.toml --target wasm32v1-none --profile $(PROFILE) --locked
 
 ## prover-build: Compile Canonical Reference Programs to RISC-V via SP1
 prover-build:

@@ -11,7 +11,7 @@ tokio = { version = "1.32", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 hex = "0.4"
 sp1-sdk = { workspace = true }
-sadgi-types = { path = "../../core/sadgi-types" }
+sadgi-types = { path = "../../core/sadgi-types", features = ["alloc"] }
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 
 [dev-dependencies]

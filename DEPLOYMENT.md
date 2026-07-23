@@ -13,17 +13,17 @@ To deploy the protocol securely, the contracts must be deployed in the correct s
 
 ### A. Deploy Registry
 ```bash
-stellar contract deploy --wasm target/wasm32-unknown-unknown/release/sadgi_registry.wasm --network testnet --source alice --alias sadgi-registry
+stellar contract deploy --wasm target/wasm32v1-none/release/sadgi_registry.wasm --network testnet --source alice --alias sadgi-registry
 ```
 
-### B. Deploy Groth16/Ed25519 Verifier (Oracle)
+### Deploy Verifier Contract
 ```bash
-stellar contract deploy --wasm target/wasm32-unknown-unknown/release/sadgi_verifier.wasm --network testnet --source alice --alias sadgi-verifier
+stellar contract deploy --wasm target/wasm32v1-none/release/sadgi_verifier.wasm --network testnet --source alice --alias sadgi-verifier
 ```
 
-### C. Deploy Marketplace
+### Deploy Marketplace Contract
 ```bash
-stellar contract deploy --wasm target/wasm32-unknown-unknown/release/sadgi_marketplace.wasm --network testnet --source alice --alias sadgi-marketplace
+stellar contract deploy --wasm target/wasm32v1-none/release/sadgi_marketplace.wasm --network testnet --source alice --alias sadgi-marketplace
 ```
 
 ### D. Initialize Marketplace

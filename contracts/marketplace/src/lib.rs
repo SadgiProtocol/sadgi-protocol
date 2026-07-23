@@ -102,7 +102,7 @@ impl SadgiMarketplace {
 
         job.assigned_provers = assigned;
         job.state = queue::JobState::Assigned;
-        queue::Queue::update_job_state(&env, job_id, queue::JobState::Assigned);
+        queue::Queue::push(&env, job);
     }
 
     /// Provers call this to submit their final cryptographic receipt.

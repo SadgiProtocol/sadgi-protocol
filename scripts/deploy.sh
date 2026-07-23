@@ -15,13 +15,13 @@ if ! command -v stellar &> /dev/null; then
 fi
 
 echo "📦 1. Building Smart Contracts..."
-cargo build --manifest-path ../contracts/registry/Cargo.toml --target wasm32-unknown-unknown --profile release
-cargo build --manifest-path ../contracts/verifier/Cargo.toml --target wasm32-unknown-unknown --profile release
-cargo build --manifest-path ../contracts/marketplace/Cargo.toml --target wasm32-unknown-unknown --profile release
+cargo build --manifest-path ../contracts/registry/Cargo.toml --target wasm32v1-none --profile release
+cargo build --manifest-path ../contracts/verifier/Cargo.toml --target wasm32v1-none --profile release
+cargo build --manifest-path ../contracts/marketplace/Cargo.toml --target wasm32v1-none --profile release
 
-REGISTRY_WASM="../target/wasm32-unknown-unknown/release/sadgi_registry.wasm"
-VERIFIER_WASM="../target/wasm32-unknown-unknown/release/sadgi_verifier.wasm"
-MARKETPLACE_WASM="../target/wasm32-unknown-unknown/release/sadgi_marketplace.wasm"
+REGISTRY_WASM="../target/wasm32v1-none/release/sadgi_registry.wasm"
+VERIFIER_WASM="../target/wasm32v1-none/release/sadgi_verifier.wasm"
+MARKETPLACE_WASM="../target/wasm32v1-none/release/sadgi_marketplace.wasm"
 
 echo "🚀 2. Deploying to $NETWORK..."
 
