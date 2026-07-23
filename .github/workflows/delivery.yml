@@ -45,6 +45,8 @@ jobs:
           cd prover && cargo fmt --all -- --check
 
       - name: Install SP1 CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           sudo apt-get update && sudo apt-get install -y protobuf-compiler
           curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
@@ -75,6 +77,8 @@ jobs:
           workspaces: "."
 
       - name: Install SP1 CLI & Dependencies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           sudo apt-get update && sudo apt-get install -y protobuf-compiler
           curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
@@ -143,6 +147,8 @@ jobs:
           push: true
           tags: ${{ env.IMAGE }}
           target: prover
+          build-args: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}

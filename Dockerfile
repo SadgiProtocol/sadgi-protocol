@@ -21,9 +21,10 @@ RUN rustup target add wasm32v1-none
 RUN cargo install --locked soroban-cli
 
 # Install SP1 toolchain
+ARG GITHUB_TOKEN
 RUN curl -L https://sp1.succinct.xyz | bash
 ENV PATH="/root/.sp1/bin:${PATH}"
-RUN sp1up
+RUN if [ -z "$GITHUB_TOKEN" ]; then sp1up; else GITHUB_TOKEN=${GITHUB_TOKEN} sp1up; fi
 
 WORKDIR /workspace
 

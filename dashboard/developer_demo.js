@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { Keypair, rpc, TransactionBuilder, Networks, BASE_FEE, xdr, Contract, nativeToScVal } = require("@stellar/stellar-sdk");
 const fs = require('fs');
 
