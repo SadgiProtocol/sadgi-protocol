@@ -201,28 +201,40 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 4rem;
-  opacity: 0.6;
-  transition: opacity 0.3s ease, filter 0.3s ease;
-  filter: grayscale(100%);
+  margin: 0 3rem;
+  transition: opacity 0.3s ease;
 }
 
-.marquee-item:hover {
-  opacity: 1;
-  filter: grayscale(0%);
+.marquee-item:hover .marquee-text {
+  color: var(--text-secondary);
+  border-color: var(--border-focus);
 }
 
 .marquee-logo {
-  height: 50px;
+  max-height: 36px;
+  width: auto;
   object-fit: contain;
+  /* Convert logo to white so it's always visible on the dark background */
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+  transition: opacity 0.3s ease;
+}
+
+.marquee-item:hover .marquee-logo {
+  opacity: 1;
 }
 
 .marquee-text {
   font-family: var(--font-mono);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
 @keyframes scroll {

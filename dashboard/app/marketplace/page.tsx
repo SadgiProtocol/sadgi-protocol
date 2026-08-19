@@ -1,17 +1,30 @@
 "use client";
 
 import { Terminal, Wallet, Database, Activity, GitCommit, FileCode, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { isAllowed, setAllowed, getAddress } from "@stellar/freighter-api";
-import { rpc, Networks } from "@stellar/stellar-sdk";
+import { rpc, Networks, xdr, Contract, TransactionBuilder, BASE_FEE, nativeToScVal } from "@stellar/stellar-sdk";
 
+// ---------------------------------------------------------------------------
 // Stellar Testnet configuration
+// ---------------------------------------------------------------------------
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = Networks.TESTNET;
-const MARKETPLACE_ID = "CC_MOCK_MARKETPLACE_ID_REPLACE_ME";
 
-type JobState = "Request" | "Queue" | "Assigned" | "Executing" | "Submitted" | "Verified" | "Settled" | "Failed";
+// Fallback — overridden at runtime by /deployments.json
+const FALLBACK_MARKETPLACE_ID = "";
+
+type JobState =
+  | "Pending"
+  | "Queued"
+  | "Assigned"
+  | "Accepted"
+  | "Computing"
+  | "Submitted"
+  | "Verified"
+  | "Settled"
+  | "Failed";
 
 interface Job {
   id: string;
@@ -19,7 +32,7 @@ interface Job {
   bounty: string;
   state: JobState;
   prover?: string;
-  receiptHash?: string;
+  txHash?: string;
   time: string;
 }
 
@@ -29,77 +42,252 @@ interface ProgramRecord {
   verification_key: string;
 }
 
+// ---------------------------------------------------------------------------
+// Helper: derive a human-readable "time ago" string
+// ---------------------------------------------------------------------------
+function timeAgo(date: Date): string {
+  const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (secs < 5) return "just now";
+  if (secs < 60) return `${secs}s ago`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+  return `${Math.floor(secs / 3600)}h ago`;
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 export default function Dashboard() {
-  const [mounted, setMounted] = useState(false);
   const [registry, setRegistry] = useState<Record<string, ProgramRecord>>({});
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [tps, setTps] = useState(42.1);
-  const [block, setBlock] = useState(0);
-  
+  const [block, setBlock] = useState<number>(0);
+  const [tps, setTps] = useState<string>("—");
+  const [marketplaceId, setMarketplaceId] = useState<string>(FALLBACK_MARKETPLACE_ID);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   // Web3 State
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [server, setServer] = useState<rpc.Server | null>(null);
+  const [server] = useState<rpc.Server>(() => new rpc.Server(RPC_URL));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [deployments, setDeployments] = useState<any>(null);
+  // Track the last ledger we polled events from so we don't re-fetch the same ones
+  const lastEventLedgerRef = useRef<number>(0);
+  // Track ledger timing for live TPS
+  const lastLedgerTimeRef = useRef<{ seq: number; ts: number } | null>(null);
+  // Track job timestamps for "time ago" display
+  const jobTimestampsRef = useRef<Map<string, Date>>(new Map());
 
-  const checkWalletConnection = async () => {
+  // ---------------------------------------------------------------------------
+  // Check existing Freighter connection (silent)
+  // ---------------------------------------------------------------------------
+  const checkWalletConnection = useCallback(async () => {
     try {
       if (await isAllowed()) {
         const user = await getAddress();
-        if (user.address) {
-          setWalletAddress(user.address);
-        }
+        if (user.address) setWalletAddress(user.address);
       }
-    } catch (e) {
-      console.warn("Freighter not installed or locked");
+    } catch {
+      // Freighter not installed — that's fine
     }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-    setServer(new rpc.Server(RPC_URL));
-    
-    // Fetch Deployments
-    fetch('/deployments.json')
-      .then(res => res.json())
-      .then(data => setDeployments(data))
-      .catch(() => console.warn("deployments.json not found, using mock IDs"));
-
-    // Fetch Registry
-    fetch('/registry_init.json')
-      .then(res => res.json())
-      .then(data => setRegistry(data))
-      .catch(() => {
-        setRegistry({
-          "0000000000000000000000000000000000000000000000000000000000000004": { name: "hash", version: 1, verification_key: "766b5f6d6f636b5f68617368" },
-          "0000000000000000000000000000000000000000000000000000000000000009": { name: "signature", version: 1, verification_key: "766b5f6d6f636b5f7369676e6174757265" }
-        });
-      });
-      
-    checkWalletConnection();
   }, []);
 
-  // Web3: Poll for latest ledger block
+  // ---------------------------------------------------------------------------
+  // Boot: mount, load config files, init RPC server
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    // Load deployments.json (generated by `make deploy`)
+    fetch("/deployments.json")
+      .then((r) => r.json())
+      .then((data) => {
+        const id: string = data?.contracts?.marketplace ?? "";
+        if (id) setMarketplaceId(id);
+      })
+      .catch(() => {
+        // No deployments.json — UI will show empty state
+      });
+
+    // Load registry init (generated by `cargo run --bin generate_vks`)
+    fetch("/registry_init.json")
+      .then((r) => r.json())
+      .then((data: Record<string, ProgramRecord>) => setRegistry(data))
+      .catch(() => {
+        setRegistry({
+          "0000000000000000000000000000000000000000000000000000000000000004": {
+            name: "hash",
+            version: 1,
+            verification_key: "766b5f6d6f636b5f68617368",
+          },
+          "0000000000000000000000000000000000000000000000000000000000000009": {
+            name: "signature",
+            version: 1,
+            verification_key: "766b5f6d6f636b5f7369676e6174757265",
+          },
+        });
+      });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    checkWalletConnection();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Live: poll latest ledger + TPS every 5 seconds
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!server) return;
-    const interval = setInterval(async () => {
+
+    const tick = async () => {
       try {
         const latest = await server.getLatestLedger();
-        setBlock(latest.sequence);
-        setTps(t => +(t + (Math.random() * 2 - 1)).toFixed(1));
-      } catch (e) {
-        // Fallback for simulation if RPC is offline
-        setBlock(b => b + 1);
-        setTps(t => +(t + (Math.random() * 2 - 1)).toFixed(1));
+        const seq = latest.sequence;
+        setBlock(seq);
+
+        // Compute TPS from ledger delta
+        const now = Date.now();
+        const prev = lastLedgerTimeRef.current;
+        if (prev && seq > prev.seq) {
+          const ledgerDelta = seq - prev.seq;
+          const timeDelta = (now - prev.ts) / 1000; // seconds
+          // Stellar mainnet ~100 ops/ledger; testnet is lower — use delta as proxy
+          const estimatedTps = (ledgerDelta * 5) / timeDelta;
+          setTps(estimatedTps.toFixed(1));
+        }
+        lastLedgerTimeRef.current = { seq, ts: now };
+      } catch {
+        // RPC unreachable — keep displaying last value
       }
-    }, 2000);
-    return () => clearInterval(interval);
+    };
+
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => clearInterval(id);
   }, [server]);
 
+  // ---------------------------------------------------------------------------
+  // Live: poll contract events and update jobs list
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!server || !marketplaceId) return;
 
+    const pollEvents = async () => {
+      try {
+        const latest = await server.getLatestLedger();
+        const latestSeq = latest.sequence;
+
+        // Start from 1000 ledgers back on first poll (≈ ~80 minutes), then only new ones
+        const startLedger = lastEventLedgerRef.current
+          ? lastEventLedgerRef.current + 1
+          : Math.max(1, latestSeq - 1000);
+
+        const response = await server.getEvents({
+          startLedger,
+          filters: [
+            {
+              type: "contract",
+              contractIds: [marketplaceId],
+              // Match all job-related topics emitted by the contract
+              topics: [["*"]],
+            },
+          ],
+          limit: 100,
+        });
+
+        if (!response.events || response.events.length === 0) {
+          lastEventLedgerRef.current = latestSeq;
+          return;
+        }
+
+        // Process events into job rows
+        setJobs((prev) => {
+          const map = new Map<string, Job>(prev.map((j) => [j.id, j]));
+
+          for (const event of response.events) {
+            // topic[0] is the event name symbol, topic[1] is the job_id u64
+            const topicVals = event.topic ?? [];
+            if (topicVals.length < 2) continue;
+
+            let eventName: string;
+            let jobId: string;
+            try {
+              // topic[0]: ScSymbol
+              const sym = topicVals[0];
+              eventName = sym.value()?.toString() ?? "";
+              // topic[1]: u64
+              const idVal = topicVals[1];
+              jobId = idVal.value()?.toString() ?? "";
+            } catch {
+              continue;
+            }
+
+            if (!jobId) continue;
+
+            const timestamp = new Date();
+            jobTimestampsRef.current.set(jobId, timestamp);
+
+            if (eventName === "job_new") {
+              if (!map.has(jobId)) {
+                map.set(jobId, {
+                  id: jobId,
+                  program: "—",
+                  bounty: "—",
+                  state: "Pending",
+                  time: timeAgo(timestamp),
+                });
+              }
+            } else if (eventName === "job_done") {
+              const existing = map.get(jobId);
+              if (existing) {
+                map.set(jobId, { ...existing, state: "Settled" });
+              }
+            } else if (eventName === "job_fail") {
+              const existing = map.get(jobId);
+              if (existing) {
+                map.set(jobId, { ...existing, state: "Failed" });
+              }
+            }
+          }
+
+          // Sort newest first
+          return Array.from(map.values()).sort(
+            (a, b) => Number(b.id) - Number(a.id)
+          );
+        });
+
+        lastEventLedgerRef.current = latestSeq;
+        setFetchError(null);
+      } catch {
+        // Only show error if we've never successfully loaded
+        if (lastEventLedgerRef.current === 0) {
+          setFetchError(
+            marketplaceId
+              ? "Could not connect to Stellar RPC. Check network."
+              : "No contract deployed yet. Deploy first with `make deploy`."
+          );
+        }
+      }
+    };
+
+    pollEvents();
+    const id = setInterval(pollEvents, 5000);
+    return () => clearInterval(id);
+  }, [server, marketplaceId]);
+
+  // ---------------------------------------------------------------------------
+  // "Time ago" ticker — refresh display every 30 seconds without re-fetching
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    const id = setInterval(() => {
+      setJobs((prev) =>
+        prev.map((job) => {
+          const ts = jobTimestampsRef.current.get(job.id);
+          return ts ? { ...job, time: timeAgo(ts) } : job;
+        })
+      );
+    }, 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Connect Freighter wallet
+  // ---------------------------------------------------------------------------
   const connectWallet = async () => {
     setIsConnecting(true);
     try {
@@ -112,55 +300,111 @@ export default function Dashboard() {
     }
   };
 
-  // Web3: Create a Job transaction
-  const handleDeployJob = async (programId: string) => {
+  // ---------------------------------------------------------------------------
+  // Submit job via Freighter + Soroban
+  // ---------------------------------------------------------------------------
+  const handleDeployJob = async () => {
     if (!walletAddress) {
-      alert("Please connect your wallet first.");
+      alert("Please connect your Freighter wallet first.");
       return;
     }
+    if (!marketplaceId) {
+      alert("No marketplace contract deployed. Run `make deploy` first.");
+      return;
+    }
+    if (!server) return;
 
-    const marketplaceId = deployments?.contracts?.marketplace || MARKETPLACE_ID;
 
     try {
-      // 1. Build a mock generic transaction payload (In real life, we fetch account sequence first)
-      console.log(`Building Soroban transaction to create job for ${programId} on contract ${marketplaceId}...`);
-      
-      // We simulate the transaction lifecycle
-      // eslint-disable-next-line react-hooks/purity
-      const newJobId = Math.floor(Math.random() * 10000).toString();
-      const progName = registry[programId]?.name || "Unknown";
-      
-      setJobs(prev => [{
-        id: newJobId,
-        program: progName,
-        bounty: "50 XLM",
-        state: "Queue",
-        time: "Just now"
-      }, ...prev]);
-      
-      alert(`Job Request Sent to ${marketplaceId.substring(0,8)}... (Simulated)`);
-      
-    } catch (e) {
+      const account = await server.getAccount(walletAddress);
+      const contract = new Contract(marketplaceId);
+
+      const devAddressVal = nativeToScVal(walletAddress, { type: "address" });
+      const classVal = xdr.ScVal.scvVec([xdr.ScVal.scvSymbol("Standard")]);
+      const bountyVal = nativeToScVal(10n, { type: "i128" });
+      const redundancyVal = nativeToScVal(1, { type: "u32" });
+
+      const tx = new TransactionBuilder(account, {
+        fee: BASE_FEE,
+        networkPassphrase: NETWORK_PASSPHRASE,
+      })
+        .addOperation(
+          contract.call("create_job", devAddressVal, classVal, bountyVal, redundancyVal)
+        )
+        .setTimeout(30)
+        .build();
+
+      // Simulate first
+      const sim = await server.simulateTransaction(tx);
+      if (rpc.Api.isSimulationError(sim)) {
+        alert(`Simulation failed: ${sim.error}`);
+        return;
+      }
+
+      const prepared = rpc.assembleTransaction(tx, sim).build();
+      // Sign via Freighter (injected into window)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { signedTransactionXDR } = await (window as any).freighter.signTransaction(
+        prepared.toXDR(),
+        { network: "TESTNET" }
+      );
+
+      const sendResp = await server.sendTransaction(
+        TransactionBuilder.fromXDR(signedTransactionXDR, NETWORK_PASSPHRASE)
+      );
+
+      if (sendResp.status === "PENDING") {
+        alert(`Job submitted on-chain! TX: ${sendResp.hash.substring(0, 10)}…\nThe job will appear in the feed once the ledger confirms.`);
+      } else {
+        alert(`Unexpected send status: ${sendResp.status}`);
+      }
+    } catch (e: unknown) {
       console.error(e);
-      alert("Transaction failed");
+      alert(`Transaction failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
-  if (!mounted) return null;
-
+  // ---------------------------------------------------------------------------
+  // Render helpers
+  // ---------------------------------------------------------------------------
   const renderStatus = (state: JobState) => {
     switch (state) {
       case "Settled":
       case "Verified":
-        return <div className="status-indicator"><div className="status-dot green"></div>{state}</div>;
-      case "Executing":
+        return (
+          <div className="status-indicator">
+            <div className="status-dot green" />
+            {state}
+          </div>
+        );
+      case "Computing":
       case "Assigned":
+      case "Accepted":
       case "Submitted":
-        return <div className="status-indicator"><div className="status-dot blue"></div>{state}</div>;
+        return (
+          <div className="status-indicator">
+            <div className="status-dot blue" />
+            {state}
+          </div>
+        );
+      case "Failed":
+        return (
+          <div className="status-indicator" style={{ color: "var(--text-muted)" }}>
+            <div className="status-dot gray" />
+            {state}
+          </div>
+        );
       default:
-        return <div className="status-indicator"><div className="status-dot gray"></div>{state}</div>;
+        return (
+          <div className="status-indicator">
+            <div className="status-dot gray" />
+            {state}
+          </div>
+        );
     }
   };
+
+  const isContractDeployed = Boolean(marketplaceId);
 
   return (
     <div className="layout-container">
@@ -174,18 +418,28 @@ export default function Dashboard() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           <div className="status-indicator">
-            <div className="status-dot green" style={{ boxShadow: "0 0 8px var(--accent-green)" }} />
-            <span style={{ color: "var(--text-secondary)" }}>Localnet Sandbox</span>
+            <div
+              className={`status-dot ${isContractDeployed ? "green" : "gray"}`}
+              style={isContractDeployed ? { boxShadow: "0 0 8px var(--accent-green)" } : {}}
+            />
+            <span style={{ color: "var(--text-secondary)" }}>
+              {isContractDeployed ? "Testnet Live" : "No Deployment"}
+            </span>
           </div>
-          
+
           {walletAddress ? (
-            <div className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "default" }}>
+            <div
+              className="btn-secondary"
+              style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "default" }}
+            >
               <Wallet size={14} />
-              <span className="mono">{walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}</span>
+              <span className="mono">
+                {walletAddress.slice(0, 4)}…{walletAddress.slice(-4)}
+              </span>
             </div>
           ) : (
             <button className="btn-secondary" onClick={connectWallet} disabled={isConnecting}>
-              {isConnecting ? "Connecting..." : "Connect Freighter"}
+              {isConnecting ? "Connecting…" : "Connect Freighter"}
             </button>
           )}
         </div>
@@ -193,23 +447,51 @@ export default function Dashboard() {
 
       {/* Main Grid */}
       <main className="grid-dashboard">
-        
         {/* Left Sidebar: Program Registry */}
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          <h2
+            style={{
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "var(--text-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
             Program Registry (SP1)
           </h2>
-          
+
           {Object.entries(registry).map(([id, program]) => (
-            <div key={id} className="panel-interactive" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div
+              key={id}
+              className="panel-interactive"
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
                 <FileCode size={16} color="var(--text-primary)" />
-                <h3 style={{ fontSize: "14px", fontWeight: 500, textTransform: "capitalize" }}>{program.name} (v{program.version})</h3>
+                <h3 style={{ fontSize: "14px", fontWeight: 500, textTransform: "capitalize" }}>
+                  {program.name} (v{program.version})
+                </h3>
               </div>
-              <p className="mono" style={{ color: "var(--text-secondary)" }}>VK: 0x{program.verification_key.substring(0, 12)}...</p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "12px" }}>
+              <p className="mono" style={{ color: "var(--text-secondary)" }}>
+                VK: 0x{program.verification_key.substring(0, 12)}…
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "12px",
+                }}
+              >
                 <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Platform Primitive</span>
-                <button className="btn-secondary" style={{ padding: "4px 8px", fontSize: "12px" }} onClick={() => handleDeployJob(id)}>Deploy Job</button>
+                <button
+                  className="btn-secondary"
+                  style={{ padding: "4px 8px", fontSize: "12px" }}
+                  onClick={() => handleDeployJob(id)}
+                >
+                  Deploy Job
+                </button>
               </div>
             </div>
           ))}
@@ -219,14 +501,25 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Right Pane: Marketplace Explorer (Terminal Style) */}
+        {/* Right Pane: Live Marketplace Explorer */}
         <div className="panel" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "20px",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <Activity size={16} color="var(--text-primary)" />
               <h2 style={{ fontSize: "14px", fontWeight: 600 }}>Marketplace State Explorer</h2>
             </div>
-            <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Live Feed</span>
+            <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+              {isContractDeployed
+                ? `${marketplaceId.substring(0, 8)}…`
+                : "Awaiting Deployment"}
+            </span>
           </div>
 
           <div style={{ flex: 1, overflowY: "auto" }}>
@@ -236,33 +529,76 @@ export default function Dashboard() {
               <div>State</div>
               <div>Bounty</div>
               <div>Program</div>
-              <div style={{ textAlign: "right" }}>Prover</div>
+              <div style={{ textAlign: "right" }}>Time</div>
             </div>
 
             {/* Table Body */}
             <div style={{ display: "flex", flexDirection: "column" }}>
-              {jobs.length === 0 && <div style={{ padding: "20px", color: "var(--text-muted)", fontSize: "13px" }}>No active jobs. Connect your wallet and deploy one to start the process.</div>}
+              {fetchError && (
+                <div
+                  style={{
+                    padding: "20px",
+                    color: "var(--text-muted)",
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Database size={14} />
+                  {fetchError}
+                </div>
+              )}
+
+              {!fetchError && jobs.length === 0 && (
+                <div style={{ padding: "20px", color: "var(--text-muted)", fontSize: "13px" }}>
+                  {isContractDeployed
+                    ? "No jobs found on-chain yet. Connect your wallet and deploy one to start."
+                    : "Deploy the contracts first, then jobs will appear here live."}
+                </div>
+              )}
+
               {jobs.map((job) => (
                 <div key={job.id} className="log-row" style={{ fontSize: "13px" }}>
-                  <div className="mono" style={{ color: "var(--text-primary)" }}>#{job.id}</div>
+                  <div className="mono" style={{ color: "var(--text-primary)" }}>
+                    #{job.id}
+                  </div>
                   <div>{renderStatus(job.state)}</div>
-                  <div className="mono" style={{ color: "var(--text-secondary)" }}>{job.bounty}</div>
+                  <div className="mono" style={{ color: "var(--text-secondary)" }}>
+                    {job.bounty}
+                  </div>
                   <div style={{ fontWeight: 500, textTransform: "capitalize" }}>{job.program}</div>
                   <div className="mono" style={{ textAlign: "right", color: "var(--text-muted)" }}>
-                    {job.prover || "Unassigned"}
+                    {job.time}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          
+
           {/* Terminal Footer */}
-          <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid var(--border-subtle)", display: "flex", alignItems: "center", gap: "12px", color: "var(--text-muted)", fontSize: "12px" }}>
+          <div
+            style={{
+              marginTop: "24px",
+              paddingTop: "16px",
+              borderTop: "1px solid var(--border-subtle)",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              color: "var(--text-muted)",
+              fontSize: "12px",
+            }}
+          >
             <GitCommit size={14} />
-            <span className="mono">Latest Block: {block}</span>
+            <span className="mono">Ledger: {block > 0 ? block.toLocaleString() : "—"}</span>
             <span style={{ margin: "0 8px" }}>|</span>
             <Clock size={14} />
-            <span className="mono">Network TPS: {tps}</span>
+            <span className="mono">TPS: {tps}</span>
+            <span style={{ margin: "0 8px" }}>|</span>
+            <Terminal size={14} />
+            <span className="mono">
+              {jobs.length} job{jobs.length !== 1 ? "s" : ""} indexed
+            </span>
           </div>
         </div>
       </main>
