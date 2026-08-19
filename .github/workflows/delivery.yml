@@ -48,7 +48,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sudo apt-get update && sudo apt-get install -y protobuf-compiler
+          sudo apt-get update -y || true
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y protobuf-compiler
           curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
 
       - name: Clippy (Root Workspace)
@@ -80,7 +81,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sudo apt-get update && sudo apt-get install -y protobuf-compiler
+          sudo apt-get update -y || true
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y protobuf-compiler
           curl -L https://sp1.succinct.xyz | bash && ~/.sp1/bin/sp1up
 
       - name: Test Root Workspace
