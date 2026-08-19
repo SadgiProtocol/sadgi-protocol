@@ -488,7 +488,7 @@ export default function Dashboard() {
                 <button
                   className="btn-secondary"
                   style={{ padding: "4px 8px", fontSize: "12px" }}
-                  onClick={() => handleDeployJob(id)}
+                  onClick={() => handleDeployJob()}
                 >
                   Deploy Job
                 </button>
